@@ -1,8 +1,10 @@
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Receituário de Medicamentos</title>
+  <title>Receituário de Controle Especial</title>
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -16,6 +18,22 @@
       --border-radius:6px;
       --font-main: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       --ui-width:190px;
+
+      --page-w: 210mm;
+      --page-h: 297mm;
+
+      --page-pad-y: 8mm;
+      --page-pad-x: 10mm;
+
+      --rx-font-default: 11;
+      --rx-line-height: 1.28;
+      --rx-pad-y: 3mm;
+      --rx-pad-x: 4mm;
+
+      --footer-h: 52mm;
+
+      --box-pad: 4mm;
+      --box-gap: 2.5mm;
     }
 
     body{
@@ -26,6 +44,7 @@
       min-height:100vh;
       padding:20px;
       padding-right:calc(var(--ui-width) + 40px);
+      -webkit-font-smoothing:antialiased;
     }
 
     #pages-container{
@@ -36,167 +55,44 @@
       max-width:calc(100vw - var(--ui-width) - 60px);
     }
 
-    .page-wrapper{
-      width:297mm;
-      height:210mm;
+    .paper-page{
+      width:var(--page-w);
+      height:var(--page-h);
       background:var(--color-white);
-      box-shadow:0 2px 20px rgba(0,0,0,.1);
-      display:flex;
+      box-shadow:0 2px 20px rgba(0,0,0,.10);
       position:relative;
       overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      padding:var(--page-pad-y) var(--page-pad-x);
+      transform-origin: top center;
       flex-shrink:0;
-      transform-origin:top center;
     }
 
-    .page-wrapper.active{
-      box-shadow:0 2px 20px rgba(59,130,246,.3);
+    .paper-page.active{
+      box-shadow:0 2px 20px rgba(59,130,246,.30);
       outline:2px solid #3b82f6;
     }
 
-    .via{
-      width:50%;
-      height:100%;
-      padding:5mm 7mm;
+    .layout-container{
       display:flex;
       flex-direction:column;
-      position:relative;
-      overflow:hidden;
+      height:100%;
+      min-height:0;
     }
 
-    .via-farmacia{ border-right:1.5px dashed var(--color-gray); }
-
-    .via-paciente{
+    /* Via do paciente: gradiente + bloqueio */
+    .via2-page{
       background:linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
     }
-    .via-paciente *{ pointer-events:none; user-select:none; }
-
-    .via-label{
-      text-align:center;
-      font-size:8px;
-      font-weight:600;
-      color:var(--color-gray);
-      text-transform:uppercase;
-      letter-spacing:1.5px;
-      padding:3px 10px;
-      background:var(--color-gray-lighter);
-      border-radius:20px;
-      margin:0 auto 6px;
-      display:inline-block;
-      align-self:center;
-      flex-shrink:0;
+    .via2-page .layout-container *{
+      pointer-events:none;
+      user-select:none;
     }
 
-    .header{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:8px 10px;
-      border:1px solid var(--color-gray-light);
-      border-radius:var(--border-radius);
-      background:var(--color-white);
-      min-height:65px;
-      flex-shrink:0;
-    }
-
-    .logo-container{
-      width:55px;
-      height:55px;
-      min-width:55px;
-      border:1.5px dashed var(--color-gray-light);
-      border-radius:var(--border-radius);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      overflow:hidden;
-      transition:all .2s ease;
-      background:var(--color-gray-lighter);
-    }
-
-    .via-farmacia .logo-container:hover{
-      border-color:var(--color-gray);
-      background:var(--color-white);
-    }
-
-    .logo-container img{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      display:none;
-    }
-    .logo-container img.visible{ display:block; }
-
-    .logo-placeholder{
+    /* (4) labels um pouco maiores */
+    .label-title{
       font-size:9px;
-      font-weight:500;
-      color:var(--color-gray);
-      text-align:center;
-      line-height:1.2;
-    }
-
-    .logo-container.has-logo{
-      border-style:solid;
-      background:var(--color-white);
-    }
-    .logo-container.has-logo .logo-placeholder{ display:none; }
-
-    .header-text{ flex:1; text-align:center; }
-
-    .header-title, .header-title-mirror{
-      font-size:11px;
-      font-weight:600;
-      color:var(--color-black);
-      margin-bottom:2px;
-      min-height:15px;
-      font-family:var(--font-main);
-    }
-
-    .header-subtitle, .header-subtitle-mirror{
-      font-size:10px;
-      font-weight:400;
-      color:var(--color-gray-dark);
-      min-height:14px;
-      font-family:var(--font-main);
-    }
-
-    .header-special{
-      font-size:9px;
-      font-weight:700;
-      color:var(--color-black);
-      text-transform:uppercase;
-      letter-spacing:.5px;
-      margin-top:3px;
-      padding:2px 8px;
-      background:var(--color-gray-lighter);
-      border-radius:3px;
-      display:inline-block;
-      font-family:var(--font-main);
-    }
-
-    .separator{
-      height:1px;
-      background:linear-gradient(to right, transparent, var(--color-gray-light), var(--color-gray), var(--color-gray-light), transparent);
-      margin:5px 0;
-      flex-shrink:0;
-    }
-
-    .separator-strong{
-      height:2px;
-      background:linear-gradient(to right, transparent, var(--color-black), transparent);
-      margin:5px 0;
-      flex-shrink:0;
-    }
-
-    .patient-section{
-      border:1px solid var(--color-gray-light);
-      border-radius:var(--border-radius);
-      padding:6px 10px;
-      background:var(--color-white);
-      flex-shrink:0;
-    }
-
-    .section-label{
-      font-size:8px;
       font-weight:600;
       color:var(--color-gray);
       text-transform:uppercase;
@@ -206,119 +102,150 @@
       font-family:var(--font-main);
     }
 
-    /* Paciente: plain text, sempre bold, no máximo 2 linhas */
-    .patient-input{
-      width:100%;
-      height:28px;              /* 2 linhas com line-height ~14px */
-      min-height:28px;
-      max-height:28px;
-      overflow:hidden;          /* sem scroll: não "passa de 2 linhas" */
-      font-size:10px;
+    .label-sm{
+      font-size:9px;
+      font-weight:700;
+      color:var(--color-gray);
+      text-transform:uppercase;
+      letter-spacing:.6px;
+      margin-bottom:2px;
       font-family:var(--font-main);
-      font-weight:800;          /* bold sempre */
-      line-height:1.4;
-      border:none;
-      resize:none;
+    }
+
+    input[type="text"]{
+      font-family:var(--font-main);
+      font-size:11pt;
       color:var(--color-black);
+      font-weight:500;
       background:transparent;
-      white-space:pre-wrap;
-      word-break:break-word;
-      overflow-wrap:anywhere;
+      border:none;
+      width:100%;
+      padding:2px 0;
+      border-bottom:1px solid transparent;
+      outline:none;
     }
 
-    .patient-input:focus{ outline:none; }
+    .input-line{ border-bottom:1px solid #d4d4d8 !important; }
 
-    .patient-input::placeholder{
-      color:var(--color-gray-light);
-      font-weight:600;
+    input:focus{
+      border-bottom:1px solid #000 !important;
+      background-color:rgba(0,0,0,0.01);
     }
 
-    .patient-display{
-      font-size:10px;
-      line-height:1.4;
-      min-height:28px;
-      max-height:28px;
-      white-space:pre-wrap;
-      word-break:break-word;
-      overflow-wrap:anywhere;
-      color:var(--color-black);
-      font-family:var(--font-main);
-      font-weight:800;
-      overflow:hidden;
-    }
+    ::placeholder{ color:#9ca3af; font-weight:400; }
+    :focus::placeholder{ color:transparent; }
 
-    .prescription-section{
-      flex:1;
-      border:1px solid var(--color-gray-light);
+    .rounded-box{
+      border:1px solid #e4e4e7;
       border-radius:var(--border-radius);
-      padding:8px 10px 8px 18px;
+      padding:var(--box-pad);
+      position:relative;
+      margin-bottom:3mm;
       background:var(--color-white);
-      overflow:hidden;
+    }
+
+    .box-label-float{
+      position:absolute;
+      top:-9px;
+      left:12px;
+      background:#fff;
+      padding:0 6px;
+      font-size:9px;
+      font-weight:700;
+      color:var(--color-gray);
+      text-transform:uppercase;
+      letter-spacing:.6px;
+    }
+
+    .top-header{
+      position:relative;
+      height:16mm;
       display:flex;
-      flex-direction:column;
-      margin:5px 0;
+      align-items:flex-start;
+      justify-content:center;
+      margin-bottom:2mm;
+    }
+
+    .main-title{
+      font-size:12pt;
+      font-weight:800;
+      text-transform:uppercase;
+      color:var(--color-black);
+      text-align:center;
+      letter-spacing:.2px;
+      margin-top:1.5mm;
+      z-index:1;
+      font-family:var(--font-main);
+    }
+
+    .via-badge{
+      position:absolute;
+      bottom:0;
+      right:0;
+      border:1px solid #e4e4e7;
+      border-radius:var(--border-radius);
+      padding:1.2mm 2.6mm;
+      font-size:7.5pt;
+      font-weight:600;
+      color:var(--color-gray);
+      text-transform:uppercase;
+      background:#fff;
+      z-index:2;
+      font-family:var(--font-main);
+    }
+
+    .issuer-grid{ display:grid; gap:var(--box-gap); }
+    .row-group{ display:flex; gap:4mm; width:100%; align-items:flex-end; }
+    .col{ display:flex; flex-direction:column; }
+
+    .section-block{ margin-bottom:2.5mm; }
+
+    /* Prescrição branco, sem linhas, mais compacto */
+    .prescription-area{
+      flex:1;
+      border:1px solid #e4e4e7;
+      border-radius:var(--border-radius);
+      position:relative;
+      overflow:hidden;
+      margin-top:1mm;
+      background:#fff;
       min-height:0;
     }
 
-    .prescription-content, .prescription-mirror{
-      flex:1;
-      font-size:11pt;
-      line-height:1.55;
-      color:var(--color-black);
-      overflow:hidden;
+    .presc-editor{
+      height:100%;
+      width:100%;
+      overflow:hidden; /* pagina */
+      padding:var(--rx-pad-y) var(--rx-pad-x);
+
+      font-size: calc(var(--rx-font-default) * 1pt);
+      line-height: var(--rx-line-height);
+
+      outline:none;
+
+      white-space:pre-wrap;
       word-break:break-word;
       overflow-wrap:anywhere;
-      white-space:pre-wrap; /* importante: \n em text node vira quebra visual */
-      font-family:var(--font-main);
+
+      background:#fff;
+      color: var(--color-black);
+      font-family: var(--font-main);
+      font-weight: 400;
     }
 
-    .prescription-content:focus{ outline:none; }
+    /* garante visual forte da formatação */
+    .presc-editor b, .presc-editor strong{ font-weight:800; }
+    .presc-editor i, .presc-editor em{ font-style:italic; }
+    .presc-editor u{ text-decoration: underline; }
 
-    .prescription-content:empty::before{
+    .presc-editor:empty::before{
       content:'Digite a prescrição aqui...';
       color:var(--color-gray-light);
       font-style:italic;
     }
 
-    .footer-section{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:15px;
-      padding-top:8px;
-      flex-shrink:0;
-    }
-
-    .date-location, .date-mirror{
-      font-size:9px;
-      color:var(--color-gray-dark);
-      font-family:var(--font-main);
-      white-space:nowrap;
-      padding-bottom:5px;
-    }
-
-    .signature-area{ flex:1; max-width:55%; text-align:center; }
-
-    .signature-line{
-      border-top:1px solid var(--color-black);
-      padding-top:5px;
-      margin-top:25px;
-    }
-
-    .doctor-name, .doctor-name-mirror{
-      font-size:10px;
-      font-weight:600;
-      color:var(--color-black);
-      min-height:14px;
-      font-family:var(--font-main);
-    }
-
-    .doctor-crm, .doctor-crm-mirror{
-      font-size:9px;
-      font-weight:400;
-      color:var(--color-gray-dark);
-      min-height:13px;
-      font-family:var(--font-main);
+    .presc-editor :where(p, div, span, strong, b, em, i, u){
+      margin:0; padding:0; line-height:inherit;
     }
 
     [contenteditable="true"]:focus{
@@ -326,12 +253,88 @@
       outline-offset:2px;
       border-radius:3px;
     }
-
     [contenteditable="true"]:hover{ background:rgba(59,130,246,.03); }
 
-    /* ============================================
-       UI FLUTUANTE
-    ============================================ */
+    .footer{
+      height:var(--footer-h);
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      margin-top:2mm;
+    }
+
+    .signature-area{
+      display:flex;
+      gap:8mm;
+      margin-bottom:3mm;
+      align-items:flex-end;
+      height:16mm;
+    }
+
+    .footer-cols{ display:flex; gap:4mm; height:calc(var(--footer-h) - 19mm); }
+
+    .footer-box{
+      border:1px solid #e4e4e7;
+      border-radius:var(--border-radius);
+      padding:2mm 3mm;
+      display:flex;
+      flex-direction:column;
+      background:#fff;
+      overflow:hidden;
+    }
+
+    .footer-title{
+      font-size:7px;
+      font-weight:700;
+      text-align:center;
+      border-bottom:1px solid #e4e4e7;
+      margin-bottom:1.5mm;
+      padding-bottom:1mm;
+      color:var(--color-gray);
+      text-transform:uppercase;
+      letter-spacing:.6px;
+    }
+
+    .buyer-grid{
+      display:flex;
+      flex-direction:column;
+      justify-content:space-evenly;
+      height:100%;
+      gap:1.5mm;
+    }
+    .buyer-row{ display:flex; gap:2mm; align-items:flex-end; }
+    .buyer-label{
+      font-weight:700;
+      color:var(--color-gray);
+      font-size:8pt;
+      white-space:nowrap;
+      margin-right:2px;
+      margin-bottom:2px;
+      font-family:var(--font-main);
+    }
+    .buyer-input{
+      flex:1;
+      border-bottom:1px solid #d4d4d8;
+      height:17px;
+      font-size:9pt;
+      background:transparent;
+      border-top:none; border-left:none; border-right:none;
+      padding:0 0 1px 0;
+      line-height:normal;
+      outline:none;
+      font-family:var(--font-main);
+      font-weight:500;
+    }
+
+    .page-indicator{
+      position:absolute;
+      bottom:6px;
+      right:10px;
+      font-size:9px;
+      color:var(--color-gray);
+    }
+
+    /* UI flutuante */
     .floating-ui{
       position:fixed;
       top:20px;
@@ -372,7 +375,6 @@
     }
 
     .btn-group{ display:flex; gap:4px; }
-
     .btn-group-spaced{
       display:flex;
       gap:4px;
@@ -402,37 +404,15 @@
       background:var(--color-gray-lighter);
       border-color:var(--color-gray);
     }
-
     .btn:active{ transform:scale(.98); }
+    .btn:disabled{ opacity:.4; cursor:not-allowed; }
 
-    .btn:disabled{
-      opacity:.4;
-      cursor:not-allowed;
-    }
-
-    .btn:disabled:hover{
-      background:var(--color-white);
-      border-color:var(--color-gray-light);
-    }
-
-    .btn-format{
-      width:34px;
-      height:34px;
-      padding:0;
-      font-size:13px;
-    }
-
+    .btn-format{ width:34px; height:34px; padding:0; font-size:13px; }
     .btn-format.bold{ font-weight:700; }
     .btn-format.italic{ font-style:italic; }
     .btn-format.underline{ text-decoration:underline; }
 
-    .btn-font{
-      width:38px;
-      height:34px;
-      padding:0;
-      font-size:14px;
-      font-weight:600;
-    }
+    .btn-font{ width:38px; height:34px; padding:0; font-size:14px; font-weight:600; }
 
     .font-size-display{
       font-size:11px;
@@ -451,10 +431,7 @@
       text-align:center;
       margin-top:4px;
     }
-    .active-page-indicator span{
-      font-weight:600;
-      color:#3b82f6;
-    }
+    .active-page-indicator span{ font-weight:600; color:#3b82f6; }
 
     .btn-full{ width:100%; margin-top:6px; }
 
@@ -493,14 +470,17 @@
     }
     .btn-danger:hover{ background:#fee2e2; }
 
-    .hidden-input{ display:none; }
-
-    .page-indicator{
-      position:absolute;
-      bottom:3px;
-      right:8px;
-      font-size:7px;
+    .page-count-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      font-size:10px;
       color:var(--color-gray);
+      margin-top:4px;
+    }
+    .page-count-badge span{
+      font-weight:600;
+      color:var(--color-black);
     }
 
     .toast{
@@ -521,25 +501,10 @@
       gap:8px;
       max-width:min(92vw, 720px);
     }
-
     .toast.show{ opacity:1; }
     .toast.success{ background:#047857; }
 
-    .page-count-badge{
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      font-size:10px;
-      color:var(--color-gray);
-      margin-top:4px;
-    }
-    .page-count-badge span{
-      font-weight:600;
-      color:var(--color-black);
-    }
-
-    /* Measurer invisível para calcular o que cabe */
-    #rx-measurer, #patient-measurer{
+    #rx-measurer{
       position:absolute;
       left:-99999px;
       top:0;
@@ -549,61 +514,44 @@
       overflow-wrap:anywhere;
       pointer-events:none;
       user-select:none;
-    }
-
-    /* ============================================
-       RESPONSIVO
-    ============================================ */
-    @media screen and (max-width:1600px){
-      .page-wrapper{ transform:scale(.85); margin-bottom:-32mm; }
+      box-sizing:border-box;
     }
 
     @media screen and (max-width:1400px){
-      .page-wrapper{ transform:scale(.7); margin-bottom:-63mm; }
+      .paper-page{ transform:scale(.75); margin-bottom:-65mm; }
     }
-
-    @media screen and (max-width:1200px){
-      .page-wrapper{ transform:scale(.55); margin-bottom:-95mm; }
+    @media screen and (max-width:1100px){
+      .paper-page{ transform:scale(.55); margin-bottom:-110mm; }
     }
-
     @media screen and (max-width:900px){
       :root{ --ui-width:160px; }
-      .page-wrapper{ transform:scale(.45); margin-bottom:-115mm; }
+      .paper-page{ transform:scale(.45); margin-bottom:-140mm; }
       .floating-ui{ padding:10px; }
       .floating-section-label{ font-size:8px; }
       .btn{ padding:6px 10px; font-size:10px; }
       .btn-format, .btn-font{ width:30px; height:30px; }
     }
 
-    /* ============================================
-       PRINT STYLES
-    ============================================ */
     @media print{
-      @page{ size:A4 landscape; margin:0; }
-
+      @page{ size:A4; margin:0; }
       *{
         -webkit-print-color-adjust:exact !important;
         print-color-adjust:exact !important;
       }
-
       html, body{
-        width:297mm;
-        height:210mm;
+        width:210mm;
+        height:auto;
         padding:0;
         margin:0;
       }
-
       body{ background:white; padding-right:0; }
-
       .floating-ui, .toast{ display:none !important; }
-
       #pages-container{ gap:0; max-width:none; }
 
-      .page-wrapper{
-        width:297mm;
-        height:210mm;
+      .paper-page{
+        width:210mm;
+        height:297mm;
         margin:0;
-        margin-bottom:0 !important;
         box-shadow:none;
         outline:none;
         transform:none !important;
@@ -611,363 +559,454 @@
         page-break-inside:avoid;
         break-after:page;
         break-inside:avoid;
+        padding:var(--page-pad-y) var(--page-pad-x);
       }
+      .paper-page:last-child{ page-break-after:auto; break-after:auto; }
 
-      .page-wrapper:last-child{
-        page-break-after:auto;
-        break-after:auto;
-      }
-
-      .via{ border:none; }
-      .via-farmacia{ border-right:1.5px dashed #666 !important; }
-      .via-paciente{ background:white !important; }
-      .via-label{ background:#f0f0f0 !important; }
-
-      .logo-container:not(.has-logo){ display:none !important; }
-
-      .header{ gap:8px; }
+      .via2-page{ background:white !important; }
+      .via2-page .layout-container *{ color:var(--color-gray-dark) !important; }
 
       [contenteditable="true"]:focus{ outline:none !important; }
       [contenteditable="true"]:hover{ background:transparent !important; }
-
-      .page-indicator{ display:none; }
     }
   </style>
 </head>
 
 <body>
   <div class="floating-ui" id="floating-ui">
-    <div class="floating-ui-title">
-      <span>📋</span> Ferramentas
-    </div>
+    <div class="floating-ui-title">📋 Ferramentas</div>
 
     <div class="floating-section">
-      <div class="floating-section-label">Formatação de Texto</div>
+      <div class="floating-section-label">Formatação (Prescrição)</div>
       <div class="btn-group">
-        <button class="btn btn-format bold" onclick="formatText('bold')" title="Negrito (Ctrl+B)">B</button>
-        <button class="btn btn-format italic" onclick="formatText('italic')" title="Itálico (Ctrl+I)">I</button>
-        <button class="btn btn-format underline" onclick="formatText('underline')" title="Sublinhado (Ctrl+U)">U</button>
+        <!-- (1) mousedown para NÃO perder seleção/foco -->
+        <button class="btn btn-format bold" onmousedown="event.preventDefault(); formatText('bold')" title="Negrito (Ctrl+B)">B</button>
+        <button class="btn btn-format italic" onmousedown="event.preventDefault(); formatText('italic')" title="Itálico (Ctrl+I)">I</button>
+        <button class="btn btn-format underline" onmousedown="event.preventDefault(); formatText('underline')" title="Sublinhado (Ctrl+U)">U</button>
       </div>
     </div>
 
     <div class="floating-section">
-      <div class="floating-section-label">Tamanho da Fonte</div>
+      <div class="floating-section-label">Tamanho da fonte (Prescrição)</div>
       <div class="btn-group-spaced">
-        <button class="btn btn-font" onclick="decreaseFontSize()" title="Diminuir fonte (Ctrl+-)" id="btn-font-decrease">A-</button>
+        <button class="btn btn-font" onclick="decreaseFontSize()" title="Diminuir (Ctrl+-)" id="btn-font-decrease">A-</button>
         <div class="font-size-display" id="font-size-display">11pt</div>
-        <button class="btn btn-font" onclick="increaseFontSize()" title="Aumentar fonte (Ctrl++)" id="btn-font-increase">A+</button>
+        <button class="btn btn-font" onclick="increaseFontSize()" title="Aumentar (Ctrl++)" id="btn-font-increase">A+</button>
       </div>
       <div class="active-page-indicator" id="active-page-indicator">Página <span>1</span></div>
     </div>
 
     <div class="floating-section">
-      <div class="floating-section-label">Páginas</div>
+      <div class="floating-section-label">Páginas (Prescrição)</div>
       <button class="btn btn-info btn-full" onclick="addManualPage()">📄 Nova Página</button>
-      <div class="page-count-badge">
-        Total: <span id="page-count">1</span> página(s)
-      </div>
+      <div class="page-count-badge">Total: <span id="page-count">1</span> par(es)</div>
     </div>
 
     <div class="floating-section">
-      <div class="floating-section-label">Dados do Cabeçalho</div>
-      <button class="btn btn-success btn-full" onclick="saveAllData()">💾 Salvar Dados</button>
+      <div class="floating-section-label">Emitente</div>
+      <button class="btn btn-success btn-full" onclick="saveIssuer()">💾 Salvar Dados (Emitente)</button>
+      <button class="btn btn-success btn-full" onclick="fillIssuer()" id="btn-fill-issuer" disabled>✨ Preencher Salvos</button>
     </div>
 
     <div class="floating-section">
       <div class="floating-section-label">Ações</div>
       <button class="btn btn-primary btn-full" onclick="handlePrint()">🖨️ Imprimir</button>
-      <button class="btn btn-warning btn-full" onclick="clearPrescription()">🧹 Limpar Receita</button>
+      <button class="btn btn-warning btn-full" onclick="clearPrescription()">🧹 Limpar Prescrição</button>
       <button class="btn btn-danger btn-full" onclick="resetAll()">⚠️ Resetar Tudo</button>
     </div>
   </div>
 
   <div id="pages-container"></div>
-
   <div id="rx-measurer" aria-hidden="true"></div>
-  <div id="patient-measurer" aria-hidden="true"></div>
+  <div class="toast" id="toast"></div>
 
-  <template id="page-template">
-    <div class="page-wrapper">
-      <div class="via via-farmacia">
-        <div class="via-label">1ª Via — Farmácia</div>
-
-        <div class="header">
-          <div class="logo-container" title="Clique para adicionar logo">
-            <img class="logo-img" alt="Logo" />
-            <span class="logo-placeholder">+ Logo</span>
-          </div>
-
-          <div class="header-text">
-            <div class="header-title" contenteditable="true">Prefeitura Municipal</div>
-            <div class="header-subtitle" contenteditable="true">Secretaria Municipal de Saúde — Unidade Básica de Saúde</div>
-            <div class="header-special">Receituário de Medicamentos</div>
-          </div>
+  <template id="via1-template">
+    <section class="paper-page via1-page">
+      <div class="layout-container">
+        <div class="top-header">
+          <div class="main-title">Receituário de Controle Especial</div>
+          <div class="via-badge">1ª VIA - FARMÁCIA/DROGARIA</div>
         </div>
 
-        <div class="separator-strong"></div>
+        <!-- Emitente reduzido: Nome + CRM ao lado + Cidade -->
+        <div class="rounded-box">
+          <span class="box-label-float">Identificação do Emitente</span>
 
-        <div class="patient-section">
-          <label class="section-label">Identificação do Paciente</label>
-          <textarea class="patient-input" rows="2" placeholder="Nome completo, endereço, RG/CPF..."></textarea>
-        </div>
+          <div class="issuer-grid">
+            <div class="row-group">
+              <div class="col" style="flex:1;">
+                <span class="label-sm">Nome Completo do Profissional</span>
+                <input type="text" class="sync-input" data-sync="emitente_nome" placeholder="Nome do Profissional" style="font-weight:600;">
+              </div>
 
-        <div class="separator"></div>
+              <div class="col" style="width: 42mm;">
+                <span class="label-sm">CRM</span>
+                <input type="text" class="sync-input" data-sync="emitente_crm" placeholder="00000">
+              </div>
+            </div>
 
-        <div class="prescription-section">
-          <div class="prescription-content" contenteditable="true"></div>
-        </div>
-
-        <div class="footer-section">
-          <div class="date-location" contenteditable="true"></div>
-          <div class="signature-area">
-            <div class="signature-line">
-              <div class="doctor-name" contenteditable="true">Nome do Médico</div>
-              <div class="doctor-crm" contenteditable="true">CRM: 00000-UF</div>
+            <div class="row-group">
+              <div class="col" style="flex:1;">
+                <span class="label-sm">Cidade</span>
+                <input type="text" class="sync-input" data-sync="emitente_cidade" placeholder="Cidade">
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="via via-paciente">
-        <div class="via-label">2ª Via — Paciente</div>
-
-        <div class="header">
-          <div class="logo-container">
-            <img class="logo-img-mirror" alt="Logo" />
-            <span class="logo-placeholder">+ Logo</span>
-          </div>
-
-          <div class="header-text">
-            <div class="header-title-mirror">Prefeitura Municipal</div>
-            <div class="header-subtitle-mirror">Secretaria Municipal de Saúde — Unidade Básica de Saúde</div>
-            <div class="header-special">Receituário de Medicamentos</div>
-          </div>
+        <div class="section-block">
+          <span class="label-title">Paciente</span>
+          <input type="text" class="sync-input input-line" data-sync="paciente_nome">
         </div>
 
-        <div class="separator-strong"></div>
-
-        <div class="patient-section">
-          <label class="section-label">Identificação do Paciente</label>
-          <div class="patient-display patient-mirror"></div>
+        <div class="section-block" style="margin-top: -1mm;">
+          <!-- (3) Endereço -> Local -->
+          <span class="label-title">Local</span>
+          <input type="text" class="sync-input input-line" data-sync="paciente_end">
         </div>
 
-        <div class="separator"></div>
-
-        <div class="prescription-section">
-          <div class="prescription-content prescription-mirror"></div>
+        <div style="margin-top: 1mm;">
+          <span class="label-title">Prescrição</span>
         </div>
 
-        <div class="footer-section">
-          <div class="date-location date-mirror"></div>
+        <div class="prescription-area">
+          <div class="presc-editor presc-editable"
+               data-rx="1"
+               contenteditable="true"
+               spellcheck="false"></div>
+        </div>
+
+        <div class="footer">
           <div class="signature-area">
-            <div class="signature-line">
-              <div class="doctor-name-mirror">Nome do Médico</div>
-              <div class="doctor-crm-mirror">CRM: 00000-UF</div>
+            <div style="width: 32%;">
+              <span class="label-title" style="font-weight: 700;">Data</span>
+              <input type="text" class="sync-input input-line" data-sync="data" style="text-align: center;">
+            </div>
+
+            <div style="flex: 1; text-align: center;">
+              <div style="border-top: 1px solid #000; padding-top: 2px;">
+                <span class="label-title" style="font-weight: 600;">Assinatura e Carimbo do Médico</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-cols">
+            <div class="footer-box" style="flex: 1.4;">
+              <div class="footer-title">IDENTIFICAÇÃO DO COMPRADOR</div>
+
+              <div class="buyer-grid">
+                <div class="buyer-row">
+                  <span class="buyer-label">Nome:</span>
+                  <input class="buyer-input" type="text">
+                </div>
+
+                <div class="buyer-row">
+                  <span class="buyer-label">Ident:</span>
+                  <input class="buyer-input" type="text" style="flex:1">
+                  <span class="buyer-label" style="margin-left: 5px;">Org:</span>
+                  <input class="buyer-input" type="text" style="width: 40px; flex:none;">
+                </div>
+
+                <div class="buyer-row">
+                  <span class="buyer-label">End:</span>
+                  <input class="buyer-input" type="text">
+                </div>
+
+                <div class="buyer-row">
+                  <span class="buyer-label">Cid:</span>
+                  <input class="buyer-input" type="text" style="flex:2">
+                  <span class="buyer-label" style="margin-left: 5px;">UF:</span>
+                  <input class="buyer-input" type="text" style="width: 25px; flex:none;">
+                  <span class="buyer-label" style="margin-left: 5px;">Tel:</span>
+                  <input class="buyer-input" type="text" style="flex:1.5">
+                </div>
+              </div>
+            </div>
+
+            <div class="footer-box" style="flex: 1;">
+              <div class="footer-title">IDENTIFICAÇÃO DO FORNECEDOR</div>
+              <div style="flex: 1; display: flex; align-items: center; justify-content: center; color: #d4d4d8;">
+                <small>(Carimbo da Farmácia)</small>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <span class="page-indicator"></span>
-    </div>
+        <span class="page-indicator"></span>
+      </div>
+    </section>
   </template>
 
-  <div class="toast" id="toast"></div>
-  <input type="file" id="logo-input" class="hidden-input" accept="image/*" />
+  <template id="via2-template">
+    <section class="paper-page via2-page readonly-mode">
+      <div class="layout-container">
+        <div class="top-header">
+          <div class="main-title">Receituário de Controle Especial</div>
+          <div class="via-badge">2ª VIA - PACIENTE</div>
+        </div>
+
+        <div class="rounded-box">
+          <span class="box-label-float">Identificação do Emitente</span>
+
+          <div class="issuer-grid">
+            <div class="row-group">
+              <div class="col" style="flex:1;">
+                <span class="label-sm">Nome Completo do Profissional</span>
+                <input type="text" data-mirror="emitente_nome" style="font-weight:600;">
+              </div>
+
+              <div class="col" style="width: 42mm;">
+                <span class="label-sm">CRM</span>
+                <input type="text" data-mirror="emitente_crm">
+              </div>
+            </div>
+
+            <div class="row-group">
+              <div class="col" style="flex:1;">
+                <span class="label-sm">Cidade</span>
+                <input type="text" data-mirror="emitente_cidade">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <span class="label-title">Paciente</span>
+          <input type="text" class="input-line" data-mirror="paciente_nome">
+        </div>
+
+        <div class="section-block" style="margin-top: -1mm;">
+          <span class="label-title">Local</span>
+          <input type="text" class="input-line" data-mirror="paciente_end">
+        </div>
+
+        <div style="margin-top: 1mm;">
+          <span class="label-title">Prescrição</span>
+        </div>
+
+        <div class="prescription-area">
+          <div class="presc-editor presc-mirror"
+               data-rx-mirror="1"
+               contenteditable="false"
+               spellcheck="false"></div>
+        </div>
+
+        <div class="footer">
+          <div class="signature-area">
+            <div style="width: 32%;">
+              <span class="label-title" style="font-weight: 700;">Data</span>
+              <input type="text" class="input-line" data-mirror="data" style="text-align: center;">
+            </div>
+
+            <div style="flex: 1; text-align: center;">
+              <div style="border-top: 1px solid #000; padding-top: 2px;">
+                <span class="label-title" style="font-weight: 600;">Assinatura e Carimbo do Médico</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-cols">
+            <div class="footer-box" style="flex: 1.4;">
+              <div class="footer-title">IDENTIFICAÇÃO DO COMPRADOR</div>
+            </div>
+
+            <div class="footer-box" style="flex: 1;">
+              <div class="footer-title">IDENTIFICAÇÃO DO FORNECEDOR</div>
+              <div style="flex: 1; display: flex; align-items: center; justify-content: center; color: #d4d4d8;">
+                <small>(Carimbo da Farmácia)</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <span class="page-indicator"></span>
+      </div>
+    </section>
+  </template>
 
   <script>
     // ============================================
-    // CONFIGURAÇÕES
+    // CONFIG
     // ============================================
-    const DEFAULT_FONT_SIZE = 11;
+    const DEFAULT_FONT_SIZE = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rx-font-default')) || 11;
     const MIN_FONT_SIZE = 7;
     const MAX_FONT_SIZE = 11.5;
     const FONT_STEP = 0.25;
-    const STORAGE_KEY = 'receituario-dados-cabecalho';
+
+    const STORAGE_KEY_ISSUER = 'receituario.emitente.v4.ce';
+    const ISSUER_FIELDS = ['emitente_nome','emitente_crm','emitente_cidade'];
 
     // ============================================
-    // ESTADO
+    // STATE
     // ============================================
-    const rxState = {
-      html: '',
-      fontSize: DEFAULT_FONT_SIZE
-    };
+    const rxState = { html: '', fontSize: DEFAULT_FONT_SIZE };
 
-    let pages = [];
-    let activePageIndex = 0;
-    let minPageCount = 1;
+    let pairs = [];
+    let activePairIndex = 0;
+    let minPairCount = 1;
 
     let isProcessing = false;
     let rxScheduled = false;
     let isComposingRx = false;
     let pendingRxSelection = null;
-    let isSyncingPatient = false; // Flag para evitar loop na sincronização do paciente
+
+    // (1) guarda última seleção na prescrição para usar ao clicar nos botões
+    let lastRxSelection = { wasInRx:false, start:0, end:0 };
 
     const undoStack = [];
     const MAX_UNDO_STACK = 50;
 
-    let logoDataUrl = null;
-
     // ============================================
-    // ELEMENTOS
+    // ELEMENTS
     // ============================================
     const pagesContainer = document.getElementById('pages-container');
-    const pageTemplate = document.getElementById('page-template');
-    const logoInput = document.getElementById('logo-input');
+    const via1Template = document.getElementById('via1-template');
+    const via2Template = document.getElementById('via2-template');
+    const rxMeasurer = document.getElementById('rx-measurer');
+
     const toast = document.getElementById('toast');
     const fontSizeDisplay = document.getElementById('font-size-display');
     const pageCountDisplay = document.getElementById('page-count');
     const activePageIndicator = document.getElementById('active-page-indicator');
     const btnFontDecrease = document.getElementById('btn-font-decrease');
     const btnFontIncrease = document.getElementById('btn-font-increase');
-
-    const rxMeasurer = document.getElementById('rx-measurer');
-    const patientMeasurer = document.getElementById('patient-measurer');
+    const btnFillIssuer = document.getElementById('btn-fill-issuer');
 
     // ============================================
-    // INIT
+    // UI helpers
     // ============================================
-    document.addEventListener('DOMContentLoaded', () => {
-      createPage(1, false);
-      loadSavedData();
-      setCurrentDate();
-      setupGlobalEvents();
-      repaginateAndRender();
-      updateUI();
-      setTimeout(() => saveState(), 100);
-    });
-
-    // ============================================
-    // HELPERS UI
-    // ============================================
-    function clampFontSize(size) {
+    function clampFontSize(size){
       return Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, size));
     }
 
-    function formatPt(size) {
+    function formatPt(size){
       const s = (Math.round(size * 100) / 100).toFixed(2).replace(/\.?0+$/, '');
       return s + 'pt';
     }
 
-    function showToast(message, type = 'default', duration = 2500) {
+    function showToast(message, type='default', duration=2500){
       toast.textContent = message;
       toast.className = 'toast show' + (type === 'success' ? ' success' : '');
       setTimeout(() => toast.classList.remove('show'), duration);
     }
 
-    function updateUI() {
+    function updateUI(){
       fontSizeDisplay.textContent = formatPt(rxState.fontSize);
       btnFontDecrease.disabled = rxState.fontSize <= MIN_FONT_SIZE;
       btnFontIncrease.disabled = rxState.fontSize >= MAX_FONT_SIZE;
 
-      activePageIndicator.innerHTML = `Página <span>${activePageIndex + 1}</span>`;
-      pageCountDisplay.textContent = pages.length;
+      activePageIndicator.innerHTML = `Página <span>${activePairIndex + 1}</span>`;
+      pageCountDisplay.textContent = pairs.length;
     }
 
-    // ============================================
-    // PAGE MGMT
-    // ============================================
-    function refreshPageMeta() {
-      pages.forEach((p, idx) => {
-        p.number = idx + 1;
-        p.element.dataset.pageIndex = String(idx);
-        p.element.dataset.pageNumber = String(idx + 1);
-        const ind = p.element.querySelector('.page-indicator');
-        if (ind) ind.textContent = `Página ${idx + 1}`;
+    function setActivePair(index){
+      activePairIndex = Math.max(0, Math.min(index, pairs.length - 1));
+      pairs.forEach((p, i) => {
+        p.via1Page.classList.toggle('active', i === activePairIndex);
+        p.via2Page.classList.toggle('active', i === activePairIndex);
       });
-
-      if (activePageIndex >= pages.length) activePageIndex = pages.length - 1;
-      if (activePageIndex < 0) activePageIndex = 0;
-    }
-
-    function setActivePage(pageIndex) {
-      activePageIndex = Math.max(0, Math.min(pageIndex, pages.length - 1));
-      pages.forEach((p, idx) => p.element.classList.toggle('active', idx === activePageIndex));
       updateUI();
     }
 
-    function createPage(pageNumber, isOverflow = false) {
-      const template = pageTemplate.content.cloneNode(true);
-      const pageWrapper = template.querySelector('.page-wrapper');
+    // ============================================
+    // CREATE PAGES (pairs)
+    // ============================================
+    function refreshPairMeta(){
+      pairs.forEach((p, idx) => {
+        p.via1Page.dataset.pairIndex = String(idx);
+        p.via2Page.dataset.pairIndex = String(idx);
 
-      pageWrapper.id = `page-${pageNumber}`;
-      pageWrapper.dataset.pageNumber = String(pageNumber);
-
-      // NÃO remover mais o patient-section - ele deve aparecer em todas as páginas
-
-      pagesContainer.appendChild(pageWrapper);
-
-      pages.push({
-        number: pageNumber,
-        element: pageWrapper,
-        isOverflow
+        const ind1 = p.via1Page.querySelector('.page-indicator');
+        const ind2 = p.via2Page.querySelector('.page-indicator');
+        if (ind1) ind1.textContent = `Página ${idx + 1}`;
+        if (ind2) ind2.textContent = `Página ${idx + 1}`;
       });
 
-      setupPageEvents(pageWrapper);
-      refreshPageMeta();
-      return pageWrapper;
+      if (activePairIndex >= pairs.length) activePairIndex = pairs.length - 1;
+      if (activePairIndex < 0) activePairIndex = 0;
     }
 
-    function ensurePageCount(desiredCount) {
-      const target = Math.max(1, desiredCount, minPageCount);
+    function createPair(){
+      const via1Frag = via1Template.content.cloneNode(true);
+      const via2Frag = via2Template.content.cloneNode(true);
 
-      while (pages.length < target) {
-        const newPage = createPage(pages.length + 1, pages.length > 0);
-        applyPageDataFromFirst(newPage);
-      }
+      const via1Page = via1Frag.querySelector('.via1-page');
+      const via2Page = via2Frag.querySelector('.via2-page');
 
-      while (pages.length > target && pages.length > minPageCount) {
-        const last = pages.pop();
-        last.element.remove();
-      }
+      pagesContainer.appendChild(via1Page);
+      pagesContainer.appendChild(via2Page);
 
-      refreshPageMeta();
+      const rx1 = via1Page.querySelector('.presc-editable');
+      const rx2 = via2Page.querySelector('.presc-mirror');
+
+      const pair = { via1Page, via2Page, rx1, rx2 };
+      pairs.push(pair);
+
+      setupPairEvents(pair);
+      refreshPairMeta();
+      return pair;
     }
 
-    function addManualPage() {
+    function ensurePairCount(desiredCount){
+      const target = Math.max(1, desiredCount, minPairCount);
+
+      while (pairs.length < target){
+        const p = createPair();
+        applyFieldsFromFirstPair(p);
+      }
+
+      while (pairs.length > target && pairs.length > minPairCount){
+        const last = pairs.pop();
+        last.via1Page.remove();
+        last.via2Page.remove();
+      }
+
+      refreshPairMeta();
+    }
+
+    function addManualPage(){
       saveState();
-      minPageCount += 1;
+      minPairCount += 1;
       repaginateAndRender(getRxGlobalSelection());
-      setActivePage(minPageCount - 1);
-      const ed = pages[minPageCount - 1]?.element?.querySelector('.via-farmacia .prescription-content');
-      ed?.focus();
-      updateUI();
+      setActivePair(minPairCount - 1);
+      pairs[minPairCount - 1]?.rx1?.focus();
       showToast('Nova página adicionada');
     }
 
     // ============================================
-    // PATIENT: sincronização entre todas as páginas
+    // SYNC FIELDS
     // ============================================
-    function syncPatientToAllPages(value, sourceInput) {
-      if (isSyncingPatient) return;
-      isSyncingPatient = true;
-
-      pages.forEach(page => {
-        const input = page.element.querySelector('.via-farmacia .patient-input');
-        const mirror = page.element.querySelector('.via-paciente .patient-mirror');
-
-        if (input && input !== sourceInput) {
-          input.value = value;
-        }
-        if (mirror) {
-          mirror.textContent = value;
-        }
+    function setFieldAll(field, value){
+      pairs.forEach(p => {
+        p.via1Page.querySelectorAll(`[data-sync="${field}"]`).forEach(el => el.value = value);
+        p.via2Page.querySelectorAll(`[data-mirror="${field}"]`).forEach(el => el.value = value);
       });
+    }
 
-      isSyncingPatient = false;
+    function getFieldFromFirst(field){
+      const first = pairs[0];
+      if (!first) return '';
+      const el = first.via1Page.querySelector(`[data-sync="${field}"]`);
+      return el?.value ?? '';
+    }
+
+    function applyFieldsFromFirstPair(){
+      if (!pairs[0]) return;
+      const fields = [...ISSUER_FIELDS, 'paciente_nome', 'paciente_end', 'data'];
+      fields.forEach(f => setFieldAll(f, getFieldFromFirst(f)));
     }
 
     // ============================================
-    // RX: selection (global text offsets)
+    // RX selection offsets
     // ============================================
-    function closestRxEditable(node) {
+    function closestRxEditable(node){
       if (!node) return null;
       const el = node.nodeType === 1 ? node : node.parentElement;
-      return el?.closest?.('.via-farmacia .prescription-content') || null;
+      return el?.closest?.('.presc-editable') || null;
     }
 
-    function caretOffsetWithin(root, container, offset) {
-      try {
+    function caretOffsetWithin(root, container, offset){
+      try{
         const range = document.createRange();
         range.setStart(root, 0);
         range.setEnd(container, offset);
@@ -977,14 +1016,14 @@
       }
     }
 
-    function getRxGlobalSelection() {
+    function getRxGlobalSelection(){
       const sel = window.getSelection();
-      if (!sel || sel.rangeCount === 0) return { wasInRx: false, start: 0, end: 0 };
+      if (!sel || sel.rangeCount === 0) return { wasInRx:false, start:0, end:0 };
 
       const range = sel.getRangeAt(0);
       const startRx = closestRxEditable(range.startContainer);
       const endRx = closestRxEditable(range.endContainer);
-      if (!startRx || !endRx) return { wasInRx: false, start: 0, end: 0 };
+      if (!startRx || !endRx) return { wasInRx:false, start:0, end:0 };
 
       const startBase = parseInt(startRx.dataset.start || '0', 10) || 0;
       const endBase = parseInt(endRx.dataset.start || '0', 10) || 0;
@@ -995,27 +1034,23 @@
       const globalStart = startBase + localStart;
       const globalEnd = endBase + localEnd;
 
-      return {
-        wasInRx: true,
-        start: Math.min(globalStart, globalEnd),
-        end: Math.max(globalStart, globalEnd)
-      };
+      return { wasInRx:true, start:Math.min(globalStart, globalEnd), end:Math.max(globalStart, globalEnd) };
     }
 
-    function resolveTextNodeOffset(root, offset) {
+    function resolveTextNodeOffset(root, offset){
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
       let node = walker.nextNode();
 
-      if (!node) {
+      if (!node){
         const t = document.createTextNode('');
         root.appendChild(t);
-        return { node: t, offset: 0 };
+        return { node:t, offset:0 };
       }
 
       let remaining = offset;
       let last = node;
 
-      while (node) {
+      while (node){
         last = node;
         const len = node.nodeValue.length;
         if (remaining <= len) return { node, offset: remaining };
@@ -1023,38 +1058,46 @@
         node = walker.nextNode();
       }
 
-      return { node: last, offset: last.nodeValue.length };
+      return { node:last, offset:last.nodeValue.length };
     }
 
-    function findRxByOffset(globalOffset) {
-      for (const p of pages) {
-        const el = p.element.querySelector('.via-farmacia .prescription-content');
+    function findRxByOffset(globalOffset){
+      for (const p of pairs){
+        const el = p.rx1;
         if (!el) continue;
         const s = parseInt(el.dataset.start || '0', 10) || 0;
         const e = parseInt(el.dataset.end || '0', 10) || 0;
-        if (globalOffset >= s && globalOffset <= e) return { el, start: s, end: e };
+        if (globalOffset >= s && globalOffset <= e) return { el, start:s, end:e };
       }
-      const last = pages[pages.length - 1]?.element?.querySelector('.via-farmacia .prescription-content');
-      if (last) {
+      const last = pairs[pairs.length - 1]?.rx1;
+      if (last){
         const s = parseInt(last.dataset.start || '0', 10) || 0;
         const e = parseInt(last.dataset.end || '0', 10) || 0;
-        return { el: last, start: s, end: e };
+        return { el:last, start:s, end:e };
       }
       return null;
     }
 
-    function findPageIndexForOffset(globalOffset) {
-      for (let i = 0; i < pages.length; i++) {
-        const el = pages[i].element.querySelector('.via-farmacia .prescription-content');
+    function findPairIndexForOffset(globalOffset){
+      for (let i=0;i<pairs.length;i++){
+        const el = pairs[i].rx1;
         if (!el) continue;
         const s = parseInt(el.dataset.start || '0', 10) || 0;
         const e = parseInt(el.dataset.end || '0', 10) || 0;
         if (globalOffset >= s && globalOffset <= e) return i;
       }
-      return Math.max(0, pages.length - 1);
+      return Math.max(0, pairs.length - 1);
     }
 
-    function restoreRxSelection(globalStart, globalEnd) {
+    function getRxTotalTextLength(){
+      let len = 0;
+      for (const p of pairs){
+        len += (p.rx1?.textContent || '').length;
+      }
+      return len;
+    }
+
+    function restoreRxSelection(globalStart, globalEnd){
       const total = getRxTotalTextLength();
       const s = Math.max(0, Math.min(globalStart, total));
       const e = Math.max(0, Math.min(globalEnd, total));
@@ -1080,19 +1123,18 @@
       startTarget.el.focus();
     }
 
-    function getRxTotalTextLength() {
-      let len = 0;
-      for (const p of pages) {
-        const el = p.element.querySelector('.via-farmacia .prescription-content');
-        if (el) len += (el.textContent || '').length;
-      }
-      return len;
+    // ============================================
+    // RX text insertion helpers
+    // ============================================
+    // (2) usa ZWSP no fim para garantir que 1 enter já "apareça"
+    const ZWSP = '\u200B';
+
+    function normalizeLineEndings(s){
+      // mantém ZWSP (não remove) para não voltar o problema do enter no fim
+      return (s || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\u00A0/g, ' ');
     }
 
-    // ============================================
-    // RX: plain insert (preserve formatting tags around)
-    // ============================================
-    function insertTextAtSelection(text) {
+    function insertTextAtSelection(text){
       const sel = window.getSelection();
       if (!sel || sel.rangeCount === 0) return;
 
@@ -1111,23 +1153,36 @@
       node.parentNode?.normalize?.();
     }
 
-    // ============================================
-    // RX: normalize HTML (convert BR/DIV/P to \n-friendly inline model)
-    // ============================================
-    function normalizeLineEndings(s) {
-      return (s || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\u00A0/g, ' ');
+    // calcula se caret está no final do editor atual
+    function isCaretAtEndOf(editor){
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return false;
+      const r = sel.getRangeAt(0);
+      if (!editor.contains(r.startContainer)) return false;
+      const off = caretOffsetWithin(editor, r.startContainer, r.startOffset);
+      return off >= (editor.textContent || '').length;
     }
 
-    function normalizeRxHTML(html) {
+    // (2) Enter com 1 tecla
+    function insertNewline(editor){
+      const atEnd = isCaretAtEndOf(editor);
+      const txt = atEnd ? ('\n' + ZWSP) : '\n';
+      insertTextAtSelection(txt);
+    }
+
+    // ============================================
+    // Normalize Rx HTML (inline + \n)
+    // ============================================
+    function normalizeRxHTML(html){
       const tmp = document.createElement('div');
       tmp.innerHTML = html || '';
 
       const allowedInline = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'SPAN']);
       const blockTags = new Set(['DIV', 'P']);
 
-      function cloneWithAllowedStyle(el) {
+      function cloneWithAllowedStyle(el){
         const clone = document.createElement(el.tagName.toLowerCase());
-        if (el.tagName === 'SPAN') {
+        if (el.tagName === 'SPAN'){
           const style = el.getAttribute('style') || '';
           const kept = [];
           style.split(';').map(s => s.trim()).filter(Boolean).forEach(pair => {
@@ -1135,7 +1190,7 @@
             if (!kRaw || !vRaw) return;
             const k = kRaw.trim().toLowerCase();
             const v = vRaw.trim().toLowerCase();
-            if (k === 'font-weight' || k === 'font-style' || k === 'text-decoration') {
+            if (k === 'font-weight' || k === 'font-style' || k === 'text-decoration'){
               kept.push(`${k}:${v}`);
             }
           });
@@ -1144,10 +1199,10 @@
         return clone;
       }
 
-      function walk(node, outFrag, afterBlockNewline) {
+      function walk(node, outFrag, afterBlockNewline){
         if (!node) return;
 
-        if (node.nodeType === Node.TEXT_NODE) {
+        if (node.nodeType === Node.TEXT_NODE){
           outFrag.appendChild(document.createTextNode(normalizeLineEndings(node.nodeValue)));
           return;
         }
@@ -1156,23 +1211,23 @@
 
         const tag = node.tagName;
 
-        if (tag === 'BR') {
+        if (tag === 'BR'){
           outFrag.appendChild(document.createTextNode('\n'));
           return;
         }
 
-        if (blockTags.has(tag)) {
+        if (blockTags.has(tag)){
           const innerFrag = document.createDocumentFragment();
           Array.from(node.childNodes).forEach(ch => walk(ch, innerFrag, true));
           outFrag.appendChild(innerFrag);
-          if (afterBlockNewline) {
+          if (afterBlockNewline){
             const lastText = outFrag.lastChild && outFrag.lastChild.nodeType === Node.TEXT_NODE ? outFrag.lastChild.nodeValue : null;
             if (!lastText || !lastText.endsWith('\n')) outFrag.appendChild(document.createTextNode('\n'));
           }
           return;
         }
 
-        if (allowedInline.has(tag)) {
+        if (allowedInline.has(tag)){
           const clone = cloneWithAllowedStyle(node);
           Array.from(node.childNodes).forEach(ch => walk(ch, clone, false));
           outFrag.appendChild(clone);
@@ -1190,26 +1245,23 @@
       let out = wrap.innerHTML;
 
       out = out.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\u00A0/g, ' ');
-
-      const outText = (() => {
-        const t = document.createElement('div');
-        t.innerHTML = out;
-        return t.textContent || '';
-      })();
-
-      if (outText.length) {
-        out = out.replace(/(\n){3,}$/g, '\n\n');
-      }
-
       return out;
     }
 
-    function collectRxHTMLFromDOM() {
-      const raw = pages.map(p => p.element.querySelector('.via-farmacia .prescription-content')?.innerHTML || '').join('');
+    function collectRxHTMLFromDOM(){
+      const raw = pairs.map(p => p.rx1?.innerHTML || '').join('');
       return normalizeRxHTML(raw);
     }
 
-    function scheduleRxRepaginate() {
+    function syncRxMirrorsFromPages(){
+      pairs.forEach(p => {
+        p.rx1.style.fontSize = rxState.fontSize + 'pt';
+        p.rx2.style.fontSize = rxState.fontSize + 'pt';
+        p.rx2.innerHTML = p.rx1.innerHTML;
+      });
+    }
+
+    function scheduleRxRepaginate(){
       if (isProcessing || isComposingRx) return;
 
       pendingRxSelection = getRxGlobalSelection();
@@ -1225,42 +1277,49 @@
     }
 
     // ============================================
-    // RX: pagination via Range clone + measurement
+    // Pagination (measurer)
     // ============================================
-    function getRxMetrics() {
-      const baseEl = pages[0]?.element?.querySelector('.via-farmacia .prescription-content');
+    function getRxMetrics(){
+      const baseEl = pairs[0]?.rx1;
       if (!baseEl) return null;
       return { baseEl, width: baseEl.clientWidth, height: baseEl.clientHeight };
     }
 
-    function syncRxMeasurerStyles(metrics) {
+    function syncRxMeasurerStyles(metrics){
       const cs = getComputedStyle(metrics.baseEl);
       rxMeasurer.style.width = metrics.width + 'px';
+
       rxMeasurer.style.fontFamily = cs.fontFamily;
       rxMeasurer.style.fontSize = rxState.fontSize + 'pt';
       rxMeasurer.style.fontWeight = cs.fontWeight;
       rxMeasurer.style.fontStyle = cs.fontStyle;
       rxMeasurer.style.letterSpacing = cs.letterSpacing;
       rxMeasurer.style.lineHeight = cs.lineHeight;
+
       rxMeasurer.style.whiteSpace = cs.whiteSpace;
       rxMeasurer.style.wordBreak = cs.wordBreak;
       rxMeasurer.style.overflowWrap = cs.overflowWrap || 'anywhere';
+
+      rxMeasurer.style.paddingTop = cs.paddingTop;
+      rxMeasurer.style.paddingRight = cs.paddingRight;
+      rxMeasurer.style.paddingBottom = cs.paddingBottom;
+      rxMeasurer.style.paddingLeft = cs.paddingLeft;
     }
 
-    function domPosFromTextOffset(root, offset) {
+    function domPosFromTextOffset(root, offset){
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
       let node = walker.nextNode();
 
-      if (!node) {
+      if (!node){
         const t = document.createTextNode('');
         root.appendChild(t);
-        return { node: t, offset: 0 };
+        return { node:t, offset:0 };
       }
 
       let remaining = offset;
       let last = node;
 
-      while (node) {
+      while (node){
         last = node;
         const len = node.nodeValue.length;
         if (remaining <= len) return { node, offset: remaining };
@@ -1268,10 +1327,10 @@
         node = walker.nextNode();
       }
 
-      return { node: last, offset: last.nodeValue.length };
+      return { node:last, offset:last.nodeValue.length };
     }
 
-    function cloneFragmentByTextOffsets(root, start, end) {
+    function cloneFragmentByTextOffsets(root, start, end){
       const range = document.createRange();
       const sPos = domPosFromTextOffset(root, start);
       const ePos = domPosFromTextOffset(root, end);
@@ -1280,29 +1339,29 @@
       return range.cloneContents();
     }
 
-    function fragmentHTMLFromOffsets(root, start, end) {
+    function fragmentHTMLFromOffsets(root, start, end){
       const frag = cloneFragmentByTextOffsets(root, start, end);
       const wrap = document.createElement('div');
       wrap.appendChild(frag);
       return wrap.innerHTML;
     }
 
-    function fitsOffsets(root, start, end, maxHeight) {
+    function fitsOffsets(root, start, end, maxHeight){
       rxMeasurer.innerHTML = '';
       rxMeasurer.appendChild(cloneFragmentByTextOffsets(root, start, end));
       return rxMeasurer.scrollHeight <= (maxHeight + 0.5);
     }
 
-    function adjustEndOffsetToBoundary(fullText, start, best) {
+    function adjustEndOffsetToBoundary(fullText, start, best){
       if (best <= start + 1) return best;
       if (best >= fullText.length) return best;
 
       let idx = best - 1;
       let found = -1;
 
-      while (idx > start) {
+      while (idx > start){
         const ch = fullText[idx];
-        if (ch === '\n' || ch === ' ' || ch === '\t') { found = idx + 1; break; }
+        if (ch === '\n' || ch === ' ' || ch === '\t'){ found = idx + 1; break; }
         idx--;
       }
 
@@ -1311,14 +1370,13 @@
       return found;
     }
 
-    function repaginateAndRender(selection = null) {
+    function repaginateAndRender(selection=null){
       if (isProcessing) return;
-
       const metrics = getRxMetrics();
       if (!metrics) return;
 
       isProcessing = true;
-      try {
+      try{
         syncRxMeasurerStyles(metrics);
 
         const sourceRoot = document.createElement('div');
@@ -1333,15 +1391,14 @@
         const chunks = [];
         const lens = [];
 
-        if (!fullText.length) {
+        if (!fullText.length){
           chunks.push('');
           lens.push(0);
         } else {
           let pos = 0;
-          while (pos < fullText.length) {
-            if (!fitsOffsets(sourceRoot, pos, pos + 1, maxHeight)) {
-              const htmlOne = fragmentHTMLFromOffsets(sourceRoot, pos, pos + 1);
-              chunks.push(htmlOne);
+          while (pos < fullText.length){
+            if (!fitsOffsets(sourceRoot, pos, pos + 1, maxHeight)){
+              chunks.push(fragmentHTMLFromOffsets(sourceRoot, pos, pos + 1));
               lens.push(1);
               pos += 1;
               continue;
@@ -1351,9 +1408,9 @@
             let hi = fullText.length;
             let best = pos + 1;
 
-            while (lo <= hi) {
+            while (lo <= hi){
               const mid = (lo + hi) >> 1;
-              if (fitsOffsets(sourceRoot, pos, mid, maxHeight)) {
+              if (fitsOffsets(sourceRoot, pos, mid, maxHeight)){
                 best = mid;
                 lo = mid + 1;
               } else {
@@ -1364,47 +1421,45 @@
             let end = adjustEndOffsetToBoundary(fullText, pos, best);
             if (end <= pos) end = Math.min(pos + 1, fullText.length);
 
-            const htmlChunk = fragmentHTMLFromOffsets(sourceRoot, pos, end);
-            chunks.push(htmlChunk);
+            chunks.push(fragmentHTMLFromOffsets(sourceRoot, pos, end));
             lens.push(end - pos);
             pos = end;
           }
         }
 
-        ensurePageCount(chunks.length);
+        ensurePairCount(chunks.length);
 
         let offset = 0;
-        for (let i = 0; i < pages.length; i++) {
+        for (let i=0;i<pairs.length;i++){
           const chunkHtml = chunks[i] ?? '';
           const chunkLen = lens[i] ?? 0;
 
-          const content = pages[i].element.querySelector('.via-farmacia .prescription-content');
-          const mirror = pages[i].element.querySelector('.via-paciente .prescription-mirror');
+          const rx1 = pairs[i].rx1;
+          const rx2 = pairs[i].rx2;
 
-          content.style.fontSize = rxState.fontSize + 'pt';
-          mirror.style.fontSize = rxState.fontSize + 'pt';
+          rx1.style.fontSize = rxState.fontSize + 'pt';
+          rx2.style.fontSize = rxState.fontSize + 'pt';
 
-          content.innerHTML = chunkHtml;
-          mirror.innerHTML = chunkHtml;
+          rx1.innerHTML = chunkHtml;
+          rx2.innerHTML = chunkHtml;
 
-          content.dataset.start = String(offset);
-          content.dataset.end = String(offset + chunkLen);
+          rx1.dataset.start = String(offset);
+          rx1.dataset.end = String(offset + chunkLen);
 
           offset += chunkLen;
         }
 
         rxState.html = chunks.join('');
 
-        if (selection?.wasInRx) {
-          const totalLen = lens.reduce((a, b) => a + b, 0);
+        if (selection?.wasInRx){
+          const totalLen = lens.reduce((a,b) => a+b, 0);
           const s = Math.max(0, Math.min(selection.start, totalLen));
           const e = Math.max(0, Math.min(selection.end, totalLen));
-
           restoreRxSelection(s, e);
-          setActivePage(findPageIndexForOffset(s));
+          setActivePair(findPairIndexForOffset(s));
         }
 
-      } catch (err) {
+      } catch (err){
         console.error('Erro na paginação:', err);
       } finally {
         isProcessing = false;
@@ -1413,235 +1468,34 @@
     }
 
     // ============================================
-    // FONT SIZE
+    // Prescrição events
     // ============================================
-    function increaseFontSize() {
-      if (rxState.fontSize >= MAX_FONT_SIZE) return;
-      saveState();
-      const sel = getRxGlobalSelection();
-      rxState.fontSize = clampFontSize(rxState.fontSize + FONT_STEP);
-      repaginateAndRender(sel);
-      updateUI();
-    }
+    function setupRxEditor(rxEl){
+      if (!rxEl) return;
+      rxEl.spellcheck = false;
 
-    function decreaseFontSize() {
-      if (rxState.fontSize <= MIN_FONT_SIZE) return;
-      saveState();
-      const sel = getRxGlobalSelection();
-      rxState.fontSize = clampFontSize(rxState.fontSize - FONT_STEP);
-      repaginateAndRender(sel);
-      updateUI();
-    }
+      rxEl.addEventListener('compositionstart', () => { isComposingRx = true; });
+      rxEl.addEventListener('compositionend', () => { isComposingRx = false; scheduleRxRepaginate(); });
 
-    // ============================================
-    // PATIENT: max 2 lines enforcement
-    // ============================================
-    function syncPatientMeasurerStyles(textarea) {
-      const cs = getComputedStyle(textarea);
-      patientMeasurer.style.width = textarea.clientWidth + 'px';
-      patientMeasurer.style.fontFamily = cs.fontFamily;
-      patientMeasurer.style.fontSize = cs.fontSize;
-      patientMeasurer.style.fontWeight = cs.fontWeight;
-      patientMeasurer.style.fontStyle = cs.fontStyle;
-      patientMeasurer.style.letterSpacing = cs.letterSpacing;
-      patientMeasurer.style.lineHeight = cs.lineHeight;
-      patientMeasurer.style.whiteSpace = 'pre-wrap';
-      patientMeasurer.style.wordBreak = 'break-word';
-      patientMeasurer.style.overflowWrap = 'anywhere';
-    }
-
-    function getLineHeightPx(el) {
-      const cs = getComputedStyle(el);
-      const lh = cs.lineHeight;
-      if (lh.endsWith('px')) return parseFloat(lh);
-      const fs = parseFloat(cs.fontSize) || 10;
-      if (lh === 'normal') return fs * 1.4;
-      const n = parseFloat(lh);
-      return Number.isFinite(n) ? n : fs * 1.4;
-    }
-
-    function patientFits(textarea, value) {
-      syncPatientMeasurerStyles(textarea);
-      patientMeasurer.textContent = normalizeLineEndings(value || '');
-      const maxH = getLineHeightPx(textarea) * 2 + 0.5;
-      return patientMeasurer.scrollHeight <= maxH;
-    }
-
-    function truncateInsertToFit(textarea, currentValue, insertText, start, end) {
-      const left = currentValue.slice(0, start);
-      const right = currentValue.slice(end);
-
-      const tryOne = left + insertText.slice(0, 1) + right;
-      if (insertText.length && !patientFits(textarea, tryOne)) return '';
-
-      let lo = 0;
-      let hi = insertText.length;
-      let best = 0;
-
-      while (lo <= hi) {
-        const mid = (lo + hi) >> 1;
-        const cand = left + insertText.slice(0, mid) + right;
-        if (patientFits(textarea, cand)) {
-          best = mid;
-          lo = mid + 1;
-        } else {
-          hi = mid - 1;
-        }
-      }
-      return insertText.slice(0, best);
-    }
-
-    function applyTextareaInsert(textarea, text) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const v = textarea.value;
-
-      textarea.value = v.slice(0, start) + text + v.slice(end);
-      const pos = start + text.length;
-      textarea.setSelectionRange(pos, pos);
-    }
-
-    function setupPatientField(patientInput, patientMirror) {
-      if (!patientInput) return;
-
-      let prev = patientInput.value;
-      let prevSel = { s: 0, e: 0 };
-
-      function syncMirror() {
-        if (patientMirror) patientMirror.textContent = patientInput.value;
-        // Sincroniza com todas as outras páginas
-        syncPatientToAllPages(patientInput.value, patientInput);
-      }
-
-      patientInput.addEventListener('beforeinput', (e) => {
-        prev = patientInput.value;
-        prevSel = { s: patientInput.selectionStart, e: patientInput.selectionEnd };
-
-        const t = e.inputType || '';
-        const isDeletion = t.startsWith('delete');
-        if (isDeletion) return;
-
-        let insert = '';
-        if (t === 'insertLineBreak' || t === 'insertParagraph') insert = '\n';
-        else if (typeof e.data === 'string') insert = e.data;
-        else return;
-
-        insert = normalizeLineEndings(insert);
-
-        const s = prevSel.s;
-        const en = prevSel.e;
-
-        const next = prev.slice(0, s) + insert + prev.slice(en);
-        if (patientFits(patientInput, next)) return;
-
-        e.preventDefault();
-        const truncated = truncateInsertToFit(patientInput, prev, insert, s, en);
-        if (truncated) {
-          applyTextareaInsert(patientInput, truncated);
-          syncMirror();
-          showToast('Limite de 2 linhas atingido.');
-        }
-      });
-
-      patientInput.addEventListener('input', () => {
-        if (!patientFits(patientInput, patientInput.value)) {
-          patientInput.value = prev;
-          patientInput.setSelectionRange(prevSel.s, prevSel.s);
-        }
-        syncMirror();
-      });
-
-      patientInput.addEventListener('paste', (e) => {
-        e.preventDefault();
-        saveState();
-
-        const paste = normalizeLineEndings((e.clipboardData || window.clipboardData).getData('text/plain') || '');
-        const s = patientInput.selectionStart;
-        const en = patientInput.selectionEnd;
-        const v = patientInput.value;
-
-        const truncated = truncateInsertToFit(patientInput, v, paste, s, en);
-        if (truncated) {
-          applyTextareaInsert(patientInput, truncated);
-          syncMirror();
-          if (truncated.length < paste.length) showToast('Colagem limitada a 2 linhas.');
-        } else {
-          showToast('Limite de 2 linhas atingido.');
-        }
-      });
-    }
-
-    // ============================================
-    // PAGE EVENTS
-    // ============================================
-    function setupPageEvents(page) {
-      const viaFarmacia = page.querySelector('.via-farmacia');
-      const viaPaciente = page.querySelector('.via-paciente');
-
-      page.addEventListener('click', () => {
-        const idx = parseInt(page.dataset.pageIndex || '0', 10) || 0;
-        setActivePage(idx);
-      });
-
-      page.querySelectorAll('[contenteditable="true"], textarea').forEach(el => {
-        el.addEventListener('focus', () => {
-          const idx = parseInt(page.dataset.pageIndex || '0', 10) || 0;
-          setActivePage(idx);
-        });
-      });
-
-      viaFarmacia.querySelector('.logo-container')?.addEventListener('click', () => logoInput.click());
-
-      const headerTitle = viaFarmacia.querySelector('.header-title');
-      const headerTitleMirror = viaPaciente.querySelector('.header-title-mirror');
-      headerTitle?.addEventListener('input', () => {
-        headerTitleMirror.textContent = headerTitle.textContent;
-        syncAllPages('headerTitle', headerTitle.textContent);
-      });
-
-      const headerSubtitle = viaFarmacia.querySelector('.header-subtitle');
-      const headerSubtitleMirror = viaPaciente.querySelector('.header-subtitle-mirror');
-      headerSubtitle?.addEventListener('input', () => {
-        headerSubtitleMirror.textContent = headerSubtitle.textContent;
-        syncAllPages('headerSubtitle', headerSubtitle.textContent);
-      });
-
-      // Patient: configura em todas as páginas
-      const patientInput = viaFarmacia.querySelector('.patient-input');
-      const patientMirror = viaPaciente.querySelector('.patient-mirror');
-      if (patientInput) {
-        setupPatientField(patientInput, patientMirror);
-      }
-
-      // RX editor
-      const rx = viaFarmacia.querySelector('.prescription-content');
-      const rxMirror = viaPaciente.querySelector('.prescription-mirror');
-
-      rx.spellcheck = false;
-      rx.style.fontSize = rxState.fontSize + 'pt';
-      rxMirror.style.fontSize = rxState.fontSize + 'pt';
-
-      rx.addEventListener('compositionstart', () => { isComposingRx = true; });
-      rx.addEventListener('compositionend', () => { isComposingRx = false; scheduleRxRepaginate(); });
-
-      rx.addEventListener('beforeinput', (e) => {
+      rxEl.addEventListener('beforeinput', (e) => {
         if (isProcessing) return;
         saveState();
 
-        if (e.inputType === 'insertParagraph' || e.inputType === 'insertLineBreak') {
+        // (2) Enter 1x = quebra de linha (inclui linha vazia)
+        if (e.inputType === 'insertParagraph' || e.inputType === 'insertLineBreak'){
           e.preventDefault();
-          insertTextAtSelection('\n');
+          insertNewline(rxEl);
           scheduleRxRepaginate();
           return;
         }
       });
 
-      rx.addEventListener('input', () => {
+      rxEl.addEventListener('input', () => {
         if (isProcessing || isComposingRx) return;
         scheduleRxRepaginate();
       });
 
-      rx.addEventListener('paste', (e) => {
+      rxEl.addEventListener('paste', (e) => {
         e.preventDefault();
         if (isProcessing) return;
         saveState();
@@ -1650,199 +1504,116 @@
         scheduleRxRepaginate();
       });
 
-      rx.addEventListener('drop', (e) => {
+      rxEl.addEventListener('drop', (e) => {
         e.preventDefault();
         if (isProcessing) return;
         saveState();
         const text = normalizeLineEndings(e.dataTransfer?.getData('text/plain') || '');
-        if (text) {
+        if (text){
           insertTextAtSelection(text);
           scheduleRxRepaginate();
         }
       });
+    }
 
-      // Date
-      const dateSection = viaFarmacia.querySelector('.date-location');
-      const dateMirror = viaPaciente.querySelector('.date-mirror');
-      dateSection?.addEventListener('input', () => {
-        dateMirror.textContent = dateSection.textContent;
-        syncAllPages('dateLocation', dateSection.textContent);
+    function setupPairEvents(pair){
+      pair.via1Page.addEventListener('click', () => setActivePair(parseInt(pair.via1Page.dataset.pairIndex || '0', 10) || 0));
+      pair.via2Page.addEventListener('click', () => setActivePair(parseInt(pair.via2Page.dataset.pairIndex || '0', 10) || 0));
+
+      pair.via1Page.querySelectorAll('input, [contenteditable="true"]').forEach(el => {
+        el.addEventListener('focus', () => setActivePair(parseInt(pair.via1Page.dataset.pairIndex || '0', 10) || 0));
       });
 
-      // Doctor
-      const doctorName = viaFarmacia.querySelector('.doctor-name');
-      const doctorNameMirror = viaPaciente.querySelector('.doctor-name-mirror');
-      doctorName?.addEventListener('input', () => {
-        doctorNameMirror.textContent = doctorName.textContent;
-        syncAllPages('doctorName', doctorName.textContent);
+      pair.via1Page.querySelectorAll('.sync-input').forEach(input => {
+        input.addEventListener('input', () => {
+          saveState();
+          setFieldAll(input.dataset.sync, input.value);
+        });
       });
 
-      const doctorCRM = viaFarmacia.querySelector('.doctor-crm');
-      const doctorCRMMirror = viaPaciente.querySelector('.doctor-crm-mirror');
-      doctorCRM?.addEventListener('input', () => {
-        doctorCRMMirror.textContent = doctorCRM.textContent;
-        syncAllPages('doctorCRM', doctorCRM.textContent);
-      });
+      setupRxEditor(pair.rx1);
     }
 
     // ============================================
-    // SYNC FIELDS
+    // (1) Formatação corrigida
     // ============================================
-    function syncAllPages(field, value) {
-      pages.forEach(page => {
-        const viaF = page.element.querySelector('.via-farmacia');
-        const viaP = page.element.querySelector('.via-paciente');
-
-        const selectors = {
-          headerTitle: ['.header-title', '.header-title-mirror'],
-          headerSubtitle: ['.header-subtitle', '.header-subtitle-mirror'],
-          dateLocation: ['.date-location', '.date-mirror'],
-          doctorName: ['.doctor-name', '.doctor-name-mirror'],
-          doctorCRM: ['.doctor-crm', '.doctor-crm-mirror']
-        };
-
-        if (selectors[field]) {
-          const elF = viaF.querySelector(selectors[field][0]);
-          const elP = viaP.querySelector(selectors[field][1]);
-          if (elF) elF.textContent = value;
-          if (elP) elP.textContent = value;
-        }
-      });
-    }
-
-    function getPageData(page) {
-      const viaF = page.querySelector('.via-farmacia');
-      return {
-        headerTitle: viaF.querySelector('.header-title')?.textContent || '',
-        headerSubtitle: viaF.querySelector('.header-subtitle')?.textContent || '',
-        dateLocation: viaF.querySelector('.date-location')?.textContent || '',
-        doctorName: viaF.querySelector('.doctor-name')?.textContent || '',
-        doctorCRM: viaF.querySelector('.doctor-crm')?.textContent || ''
-      };
-    }
-
-    function applyPageData(page, data) {
-      const viaF = page.querySelector('.via-farmacia');
-      const viaP = page.querySelector('.via-paciente');
-
-      viaF.querySelector('.header-title').textContent = data.headerTitle;
-      viaP.querySelector('.header-title-mirror').textContent = data.headerTitle;
-
-      viaF.querySelector('.header-subtitle').textContent = data.headerSubtitle;
-      viaP.querySelector('.header-subtitle-mirror').textContent = data.headerSubtitle;
-
-      viaF.querySelector('.date-location').textContent = data.dateLocation;
-      viaP.querySelector('.date-mirror').textContent = data.dateLocation;
-
-      viaF.querySelector('.doctor-name').textContent = data.doctorName;
-      viaP.querySelector('.doctor-name-mirror').textContent = data.doctorName;
-
-      viaF.querySelector('.doctor-crm').textContent = data.doctorCRM;
-      viaP.querySelector('.doctor-crm-mirror').textContent = data.doctorCRM;
-    }
-
-    function applyPageDataFromFirst(page) {
-      const firstPage = pages[0]?.element;
-      if (!firstPage) return;
-
-      applyPageData(page, getPageData(firstPage));
-
-      // Também copia o valor do paciente
-      const firstPatientInput = firstPage.querySelector('.patient-input');
-      const patientInput = page.querySelector('.via-farmacia .patient-input');
-      const patientMirror = page.querySelector('.via-paciente .patient-mirror');
-
-      if (firstPatientInput && patientInput) {
-        patientInput.value = firstPatientInput.value;
-      }
-      if (firstPatientInput && patientMirror) {
-        patientMirror.textContent = firstPatientInput.value;
-      }
-
-      if (logoDataUrl) applyLogoToPage(page, logoDataUrl);
-    }
-
-    // ============================================
-    // LOGO
-    // ============================================
-    function handleLogoUpload(event) {
-      const file = event.target.files[0];
-      if (!file?.type?.startsWith('image/')) {
-        showToast('Selecione uma imagem');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        logoDataUrl = e.target.result;
-        applyLogoToAllPages(logoDataUrl);
-        showToast('✓ Logo atualizado', 'success');
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function applyLogoToAllPages(base64) {
-      pages.forEach(p => applyLogoToPage(p.element, base64));
-    }
-
-    function applyLogoToPage(page, base64) {
-      ['via-farmacia', 'via-paciente'].forEach((via, i) => {
-        const container = page.querySelector(`.${via} .logo-container`);
-        if (!container) return;
-        const img = container.querySelector(i === 0 ? '.logo-img' : '.logo-img-mirror');
-        img.src = base64;
-        img.classList.add('visible');
-        container.classList.add('has-logo');
-      });
-    }
-
-    // ============================================
-    // FORMATAÇÃO (mantida; repagina após aplicar)
-    // ============================================
-    function formatText(command) {
-      const sel = window.getSelection();
-      const inRx = !!closestRxEditable(sel?.anchorNode);
+    function formatText(command){
+      // tenta usar seleção atual; se perdeu (clique no botão), usa última seleção salva
+      const cur = getRxGlobalSelection();
+      const selToUse = cur.wasInRx ? cur : (lastRxSelection.wasInRx ? lastRxSelection : null);
+      if (!selToUse) return;
 
       saveState();
 
+      // restaura seleção antes de aplicar
+      restoreRxSelection(selToUse.start, selToUse.end);
+
+      // aplica comando
       document.execCommand(command, false, null);
 
-      if (inRx) scheduleRxRepaginate();
+      // IMPORTANTÍSSIMO: não repaginar imediatamente (senão "mata" estado do comando).
+      // apenas sincroniza espelho e atualiza estado HTML.
+      rxState.html = collectRxHTMLFromDOM();
+      syncRxMirrorsFromPages();
+
+      // atualiza last selection após o comando (melhor esforço)
+      const after = getRxGlobalSelection();
+      if (after.wasInRx) lastRxSelection = after;
     }
 
     // ============================================
-    // UNDO
+    // Font size controls
     // ============================================
-    function saveState() {
-      const first = pages[0]?.element;
-      const patientValue = first?.querySelector('.patient-input')?.value || '';
-      const snap = {
+    function increaseFontSize(){
+      if (rxState.fontSize >= MAX_FONT_SIZE) return;
+      saveState();
+      const sel = getRxGlobalSelection();
+      rxState.fontSize = clampFontSize(rxState.fontSize + FONT_STEP);
+      repaginateAndRender(sel.wasInRx ? sel : lastRxSelection);
+      updateUI();
+    }
+
+    function decreaseFontSize(){
+      if (rxState.fontSize <= MIN_FONT_SIZE) return;
+      saveState();
+      const sel = getRxGlobalSelection();
+      rxState.fontSize = clampFontSize(rxState.fontSize - FONT_STEP);
+      repaginateAndRender(sel.wasInRx ? sel : lastRxSelection);
+      updateUI();
+    }
+
+    // ============================================
+    // Undo
+    // ============================================
+    function snapshot(){
+      const fields = {};
+      [...ISSUER_FIELDS, 'paciente_nome', 'paciente_end', 'data'].forEach(f => fields[f] = getFieldFromFirst(f));
+      return {
         rxHtml: rxState.html,
         rxFontSize: rxState.fontSize,
-        minPageCount,
-        patientValue,
-        activePageIndex,
-        logoDataUrl,
-        meta: first ? getPageData(first) : null
+        minPairCount,
+        activePairIndex,
+        fields
       };
+    }
 
+    function saveState(){
+      const snap = snapshot();
       const last = undoStack[undoStack.length - 1];
       if (last &&
-          last.rxHtml === snap.rxHtml &&
-          last.rxFontSize === snap.rxFontSize &&
-          last.minPageCount === snap.minPageCount &&
-          last.patientValue === snap.patientValue &&
-          last.activePageIndex === snap.activePageIndex &&
-          last.logoDataUrl === snap.logoDataUrl &&
-          JSON.stringify(last.meta) === JSON.stringify(snap.meta)
+        last.rxHtml === snap.rxHtml &&
+        last.rxFontSize === snap.rxFontSize &&
+        last.minPairCount === snap.minPairCount &&
+        last.activePairIndex === snap.activePairIndex &&
+        JSON.stringify(last.fields) === JSON.stringify(snap.fields)
       ) return;
 
       undoStack.push(snap);
       if (undoStack.length > MAX_UNDO_STACK) undoStack.shift();
     }
 
-    function undo() {
-      if (undoStack.length < 2) {
+    function undo(){
+      if (undoStack.length < 2){
         showToast('Nada para desfazer');
         return;
       }
@@ -1852,54 +1623,121 @@
       if (!prev) return;
 
       isProcessing = true;
-      try {
+      try{
         rxState.html = prev.rxHtml || '';
         rxState.fontSize = clampFontSize(prev.rxFontSize || DEFAULT_FONT_SIZE);
-        minPageCount = Math.max(1, prev.minPageCount || 1);
-        logoDataUrl = prev.logoDataUrl || null;
+        minPairCount = Math.max(1, prev.minPairCount || 1);
 
-        if (prev.meta) {
-          pages.forEach(p => applyPageData(p.element, prev.meta));
-        }
-
-        // Restaura paciente em todas as páginas
-        syncPatientToAllPages(prev.patientValue || '', null);
-
-        if (logoDataUrl) applyLogoToAllPages(logoDataUrl);
-        else {
-          pages.forEach(p => {
-            p.element.querySelectorAll('.logo-container').forEach(c => {
-              c.classList.remove('has-logo');
-              c.querySelectorAll('img').forEach(img => { img.src = ''; img.classList.remove('visible'); });
-            });
-          });
-        }
+        ensurePairCount(minPairCount);
+        Object.entries(prev.fields || {}).forEach(([k,v]) => setFieldAll(k, v || ''));
 
       } finally {
         isProcessing = false;
       }
 
-      repaginateAndRender();
-      setActivePage(prev.activePageIndex || 0);
+      repaginateAndRender(lastRxSelection);
+      setActivePair(prev.activePairIndex || 0);
       updateUI();
       showToast('Ação desfeita (Ctrl+Z)');
     }
 
     // ============================================
-    // GLOBAL EVENTS
+    // Emitente: salvar / preencher
     // ============================================
-    function setupGlobalEvents() {
-      logoInput.addEventListener('change', handleLogoUpload);
+    function saveIssuer(){
+      try{
+        const data = {};
+        ISSUER_FIELDS.forEach(k => data[k] = (getFieldFromFirst(k) || '').trim());
+        localStorage.setItem(STORAGE_KEY_ISSUER, JSON.stringify(data));
+        btnFillIssuer.disabled = false;
+        showToast('✓ Emitente salvo!', 'success');
+      } catch (e){
+        console.error(e);
+        showToast('Erro ao salvar emitente');
+      }
+    }
 
-      window.addEventListener('resize', () => {
-        repaginateAndRender(getRxGlobalSelection());
+    function loadSavedIssuer(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY_ISSUER);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    function fillIssuer(){
+      const saved = loadSavedIssuer();
+      if (!saved) return;
+      ISSUER_FIELDS.forEach(k => setFieldAll(k, saved[k] || ''));
+      showToast('Dados do emitente preenchidos', 'success');
+    }
+
+    // ============================================
+    // Actions
+    // ============================================
+    function setDefaultDateIfEmpty(force=false){
+      const current = getFieldFromFirst('data')?.trim();
+      if (!force && current) return;
+      const d = new Date().toLocaleDateString('pt-BR');
+      setFieldAll('data', d);
+    }
+
+    function handlePrint(){
+      // garante que está paginado antes de imprimir
+      repaginateAndRender(getRxGlobalSelection().wasInRx ? getRxGlobalSelection() : lastRxSelection);
+      requestAnimationFrame(() => window.print());
+    }
+
+    function clearPrescription(){
+      if (!confirm('Limpar SOMENTE a prescrição?')) return;
+      saveState();
+      rxState.html = '';
+      rxState.fontSize = DEFAULT_FONT_SIZE;
+      minPairCount = 1;
+      repaginateAndRender(lastRxSelection);
+      ensurePairCount(1);
+      setActivePair(0);
+      updateUI();
+      showToast('Prescrição limpa');
+    }
+
+    function resetAll(){
+      if (!confirm('⚠️ Resetar tudo? (emitente, paciente, data e prescrição)')) return;
+      saveState();
+
+      [...ISSUER_FIELDS, 'paciente_nome', 'paciente_end', 'data'].forEach(f => setFieldAll(f, ''));
+
+      rxState.html = '';
+      rxState.fontSize = DEFAULT_FONT_SIZE;
+      minPairCount = 1;
+
+      ensurePairCount(1);
+      setDefaultDateIfEmpty(true);
+      repaginateAndRender(lastRxSelection);
+      setActivePair(0);
+      updateUI();
+      showToast('Tudo resetado');
+    }
+
+    // ============================================
+    // Global events / init
+    // ============================================
+    function setupGlobalEvents(){
+      window.addEventListener('resize', () => repaginateAndRender(getRxGlobalSelection().wasInRx ? getRxGlobalSelection() : lastRxSelection));
+
+      // (1) salva seleção mais recente dentro do RX
+      document.addEventListener('selectionchange', () => {
+        const s = getRxGlobalSelection();
+        if (s.wasInRx) lastRxSelection = s;
       });
 
       document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey || e.metaKey) {
-          switch (e.key.toLowerCase()) {
+        if (e.ctrlKey || e.metaKey){
+          switch (e.key.toLowerCase()){
             case 'p': e.preventDefault(); handlePrint(); break;
-            case 's': e.preventDefault(); saveAllData(); break;
+            case 's': e.preventDefault(); saveIssuer(); break;
             case 'z': e.preventDefault(); undo(); break;
             case 'b': e.preventDefault(); formatText('bold'); break;
             case 'i': e.preventDefault(); formatText('italic'); break;
@@ -1912,173 +1750,23 @@
       });
     }
 
-    // ============================================
-    // AÇÕES
-    // ============================================
-    function handlePrint() {
-      window.print();
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      createPair();
+      setDefaultDateIfEmpty(false);
 
-    function clearPrescription() {
-      if (!confirm('Limpar dados do paciente e prescrição?\n\nDados do cabeçalho e médico serão mantidos.')) return;
+      const saved = loadSavedIssuer();
+      if (saved){
+        btnFillIssuer.disabled = false;
+        const allEmpty = ISSUER_FIELDS.every(k => !(getFieldFromFirst(k) || '').trim());
+        if (allEmpty) fillIssuer();
+      }
 
-      saveState();
-
-      rxState.html = '';
-      rxState.fontSize = DEFAULT_FONT_SIZE;
-      minPageCount = 1;
-
-      // Limpa paciente em todas as páginas
-      syncPatientToAllPages('', null);
-
+      setupGlobalEvents();
       repaginateAndRender();
-      ensurePageCount(1);
-      setActivePage(0);
-
       updateUI();
-      showToast('Receita limpa');
-    }
 
-    function resetAll() {
-      if (!confirm('⚠️ ATENÇÃO!\n\nResetar tudo nesta sessão?\n\nIsso limpa logo, cabeçalho, médico, paciente e prescrição.')) return;
-
-      saveState();
-
-      logoDataUrl = null;
-      pages.forEach(p => {
-        p.element.querySelectorAll('.logo-container').forEach(c => {
-          c.classList.remove('has-logo');
-          c.querySelectorAll('img').forEach(img => { img.src = ''; img.classList.remove('visible'); });
-        });
-      });
-
-      const first = pages[0]?.element;
-      if (first) {
-        const viaF = first.querySelector('.via-farmacia');
-        viaF.querySelector('.header-title').textContent = 'Prefeitura Municipal';
-        viaF.querySelector('.header-subtitle').textContent = 'Secretaria Municipal de Saúde — Unidade Básica de Saúde';
-        viaF.querySelector('.doctor-name').textContent = 'Nome do Médico';
-        viaF.querySelector('.doctor-crm').textContent = 'CRM: 00000-UF';
-        setCurrentDate(true);
-
-        syncAllPages('headerTitle', viaF.querySelector('.header-title').textContent);
-        syncAllPages('headerSubtitle', viaF.querySelector('.header-subtitle').textContent);
-        syncAllPages('doctorName', viaF.querySelector('.doctor-name').textContent);
-        syncAllPages('doctorCRM', viaF.querySelector('.doctor-crm').textContent);
-
-        // Limpa paciente em todas as páginas
-        syncPatientToAllPages('', null);
-      }
-
-      rxState.html = '';
-      rxState.fontSize = DEFAULT_FONT_SIZE;
-      minPageCount = 1;
-
-      repaginateAndRender();
-      ensurePageCount(1);
-      setActivePage(0);
-
-      updateUI();
-      showToast('Tudo resetado');
-    }
-
-    // ============================================
-    // SALVAR E CARREGAR DADOS DO LOCALSTORAGE
-    // ============================================
-    function saveAllData() {
-      try {
-        const first = pages[0]?.element;
-        if (!first) return;
-
-        const viaF = first.querySelector('.via-farmacia');
-
-        const data = {
-          headerTitle: viaF.querySelector('.header-title')?.textContent || '',
-          headerSubtitle: viaF.querySelector('.header-subtitle')?.textContent || '',
-          dateLocation: viaF.querySelector('.date-location')?.textContent || '',
-          doctorName: viaF.querySelector('.doctor-name')?.textContent || '',
-          doctorCRM: viaF.querySelector('.doctor-crm')?.textContent || '',
-          logoDataUrl: logoDataUrl || null
-        };
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        showToast('✓ Dados do cabeçalho salvos!', 'success');
-      } catch (e) {
-        console.error('Erro ao salvar dados:', e);
-        showToast('Erro ao salvar dados');
-      }
-    }
-
-    function loadSavedData() {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved) return;
-
-        const data = JSON.parse(saved);
-        const first = pages[0]?.element;
-        if (!first) return;
-
-        const viaF = first.querySelector('.via-farmacia');
-        const viaP = first.querySelector('.via-paciente');
-
-        if (data.headerTitle) {
-          viaF.querySelector('.header-title').textContent = data.headerTitle;
-          viaP.querySelector('.header-title-mirror').textContent = data.headerTitle;
-        }
-
-        if (data.headerSubtitle) {
-          viaF.querySelector('.header-subtitle').textContent = data.headerSubtitle;
-          viaP.querySelector('.header-subtitle-mirror').textContent = data.headerSubtitle;
-        }
-
-        if (data.dateLocation) {
-          viaF.querySelector('.date-location').textContent = data.dateLocation;
-          viaP.querySelector('.date-mirror').textContent = data.dateLocation;
-        }
-
-        if (data.doctorName) {
-          viaF.querySelector('.doctor-name').textContent = data.doctorName;
-          viaP.querySelector('.doctor-name-mirror').textContent = data.doctorName;
-        }
-
-        if (data.doctorCRM) {
-          viaF.querySelector('.doctor-crm').textContent = data.doctorCRM;
-          viaP.querySelector('.doctor-crm-mirror').textContent = data.doctorCRM;
-        }
-
-        if (data.logoDataUrl) {
-          logoDataUrl = data.logoDataUrl;
-          applyLogoToAllPages(logoDataUrl);
-        }
-
-      } catch (e) {
-        console.error('Erro ao carregar dados salvos:', e);
-      }
-    }
-
-    function setCurrentDate(force = false) {
-      const first = pages[0]?.element;
-      const dateEl = first?.querySelector('.via-farmacia .date-location');
-      
-      if (!force && dateEl?.textContent?.trim()) return;
-
-      const date = new Date().toLocaleDateString('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
-      });
-
-      const text = `Município — UF, ${date}`;
-      pages.forEach(p => {
-        const f = p.element.querySelector('.via-farmacia .date-location');
-        const m = p.element.querySelector('.via-paciente .date-mirror');
-        if (force || !f.textContent.trim()) {
-          f.textContent = text;
-          m.textContent = text;
-        }
-      });
-    }
+      setTimeout(() => saveState(), 100);
+    });
   </script>
 </body>
 </html>
