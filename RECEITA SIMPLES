@@ -1,0 +1,2085 @@
+
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Receituário de Medicamentos</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root{
+      --color-black:#1a1a1a;
+      --color-gray-dark:#4a4a4a;
+      --color-gray:#6b6b6b;
+      --color-gray-light:#e0e0e0;
+      --color-gray-lighter:#f5f5f5;
+      --color-white:#ffffff;
+      --border-radius:6px;
+      --font-main: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      --ui-width:190px;
+    }
+
+    body{
+      font-family:var(--font-main);
+      background:#e8e8e8;
+      color:var(--color-gray-dark);
+      line-height:1.4;
+      min-height:100vh;
+      padding:20px;
+      padding-right:calc(var(--ui-width) + 40px);
+    }
+
+    #pages-container{
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+      align-items:center;
+      max-width:calc(100vw - var(--ui-width) - 60px);
+    }
+
+    .page-wrapper{
+      width:297mm;
+      height:210mm;
+      background:var(--color-white);
+      box-shadow:0 2px 20px rgba(0,0,0,.1);
+      display:flex;
+      position:relative;
+      overflow:hidden;
+      flex-shrink:0;
+      transform-origin:top center;
+    }
+
+    .page-wrapper.active{
+      box-shadow:0 2px 20px rgba(59,130,246,.3);
+      outline:2px solid #3b82f6;
+    }
+
+    .via{
+      width:50%;
+      height:100%;
+      padding:5mm 7mm;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .via-farmacia{ border-right:1.5px dashed var(--color-gray); }
+
+    .via-paciente{
+      background:linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+    }
+    .via-paciente *{ pointer-events:none; user-select:none; }
+
+    .via-label{
+      text-align:center;
+      font-size:8px;
+      font-weight:600;
+      color:var(--color-gray);
+      text-transform:uppercase;
+      letter-spacing:1.5px;
+      padding:3px 10px;
+      background:var(--color-gray-lighter);
+      border-radius:20px;
+      margin:0 auto 6px;
+      display:inline-block;
+      align-self:center;
+      flex-shrink:0;
+    }
+
+    .header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:8px 10px;
+      border:1px solid var(--color-gray-light);
+      border-radius:var(--border-radius);
+      background:var(--color-white);
+      min-height:65px;
+      flex-shrink:0;
+    }
+
+    .logo-container{
+      width:55px;
+      height:55px;
+      min-width:55px;
+      border:1.5px dashed var(--color-gray-light);
+      border-radius:var(--border-radius);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      overflow:hidden;
+      transition:all .2s ease;
+      background:var(--color-gray-lighter);
+    }
+
+    .via-farmacia .logo-container:hover{
+      border-color:var(--color-gray);
+      background:var(--color-white);
+    }
+
+    .logo-container img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:none;
+    }
+    .logo-container img.visible{ display:block; }
+
+    .logo-placeholder{
+      font-size:9px;
+      font-weight:500;
+      color:var(--color-gray);
+      text-align:center;
+      line-height:1.2;
+    }
+
+    .logo-container.has-logo{
+      border-style:solid;
+      background:var(--color-white);
+    }
+    .logo-container.has-logo .logo-placeholder{ display:none; }
+
+    .header-text{ flex:1; text-align:center; }
+
+    .header-title, .header-title-mirror{
+      font-size:11px;
+      font-weight:600;
+      color:var(--color-black);
+      margin-bottom:2px;
+      min-height:15px;
+      font-family:var(--font-main);
+    }
+
+    .header-subtitle, .header-subtitle-mirror{
+      font-size:10px;
+      font-weight:400;
+      color:var(--color-gray-dark);
+      min-height:14px;
+      font-family:var(--font-main);
+    }
+
+    .header-special{
+      font-size:9px;
+      font-weight:700;
+      color:var(--color-black);
+      text-transform:uppercase;
+      letter-spacing:.5px;
+      margin-top:3px;
+      padding:2px 8px;
+      background:var(--color-gray-lighter);
+      border-radius:3px;
+      display:inline-block;
+      font-family:var(--font-main);
+    }
+
+    .separator{
+      height:1px;
+      background:linear-gradient(to right, transparent, var(--color-gray-light), var(--color-gray), var(--color-gray-light), transparent);
+      margin:5px 0;
+      flex-shrink:0;
+    }
+
+    .separator-strong{
+      height:2px;
+      background:linear-gradient(to right, transparent, var(--color-black), transparent);
+      margin:5px 0;
+      flex-shrink:0;
+    }
+
+    .patient-section{
+      border:1px solid var(--color-gray-light);
+      border-radius:var(--border-radius);
+      padding:6px 10px;
+      background:var(--color-white);
+      flex-shrink:0;
+    }
+
+    .section-label{
+      font-size:8px;
+      font-weight:600;
+      color:var(--color-gray);
+      text-transform:uppercase;
+      letter-spacing:.8px;
+      margin-bottom:3px;
+      display:block;
+      font-family:var(--font-main);
+    }
+
+    /* Paciente: plain text, sempre bold, no máximo 2 linhas */
+    .patient-input{
+      width:100%;
+      height:28px;              /* 2 linhas com line-height ~14px */
+      min-height:28px;
+      max-height:28px;
+      overflow:hidden;          /* sem scroll: não "passa de 2 linhas" */
+      font-size:10px;
+      font-family:var(--font-main);
+      font-weight:800;          /* bold sempre */
+      line-height:1.4;
+      border:none;
+      resize:none;
+      color:var(--color-black);
+      background:transparent;
+      white-space:pre-wrap;
+      word-break:break-word;
+      overflow-wrap:anywhere;
+    }
+
+    .patient-input:focus{ outline:none; }
+
+    .patient-input::placeholder{
+      color:var(--color-gray-light);
+      font-weight:600;
+    }
+
+    .patient-display{
+      font-size:10px;
+      line-height:1.4;
+      min-height:28px;
+      max-height:28px;
+      white-space:pre-wrap;
+      word-break:break-word;
+      overflow-wrap:anywhere;
+      color:var(--color-black);
+      font-family:var(--font-main);
+      font-weight:800;
+      overflow:hidden;
+    }
+
+    .prescription-section{
+      flex:1;
+      border:1px solid var(--color-gray-light);
+      border-radius:var(--border-radius);
+      padding:8px 10px 8px 18px;
+      background:var(--color-white);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      margin:5px 0;
+      min-height:0;
+    }
+
+    .prescription-content, .prescription-mirror{
+      flex:1;
+      font-size:11pt;
+      line-height:1.55;
+      color:var(--color-black);
+      overflow:hidden;
+      word-break:break-word;
+      overflow-wrap:anywhere;
+      white-space:pre-wrap; /* importante: \n em text node vira quebra visual */
+      font-family:var(--font-main);
+    }
+
+    .prescription-content:focus{ outline:none; }
+
+    .prescription-content:empty::before{
+      content:'Digite a prescrição aqui...';
+      color:var(--color-gray-light);
+      font-style:italic;
+    }
+
+    .footer-section{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:15px;
+      padding-top:8px;
+      flex-shrink:0;
+    }
+
+    .date-location, .date-mirror{
+      font-size:9px;
+      color:var(--color-gray-dark);
+      font-family:var(--font-main);
+      white-space:nowrap;
+      padding-bottom:5px;
+    }
+
+    .signature-area{ flex:1; max-width:55%; text-align:center; }
+
+    .signature-line{
+      border-top:1px solid var(--color-black);
+      padding-top:5px;
+      margin-top:25px;
+    }
+
+    .doctor-name, .doctor-name-mirror{
+      font-size:10px;
+      font-weight:600;
+      color:var(--color-black);
+      min-height:14px;
+      font-family:var(--font-main);
+    }
+
+    .doctor-crm, .doctor-crm-mirror{
+      font-size:9px;
+      font-weight:400;
+      color:var(--color-gray-dark);
+      min-height:13px;
+      font-family:var(--font-main);
+    }
+
+    [contenteditable="true"]:focus{
+      outline:2px solid #3b82f6;
+      outline-offset:2px;
+      border-radius:3px;
+    }
+
+    [contenteditable="true"]:hover{ background:rgba(59,130,246,.03); }
+
+    /* ============================================
+       UI FLUTUANTE
+    ============================================ */
+    .floating-ui{
+      position:fixed;
+      top:20px;
+      right:20px;
+      width:var(--ui-width);
+      background:var(--color-white);
+      border:1px solid var(--color-gray-light);
+      border-radius:10px;
+      padding:14px;
+      box-shadow:0 4px 25px rgba(0,0,0,.12);
+      z-index:1000;
+      max-height:calc(100vh - 40px);
+      overflow-y:auto;
+    }
+
+    .floating-ui-title{
+      font-size:11px;
+      font-weight:600;
+      color:var(--color-black);
+      margin-bottom:12px;
+      padding-bottom:10px;
+      border-bottom:1px solid var(--color-gray-light);
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .floating-section{ margin-bottom:12px; }
+    .floating-section:last-child{ margin-bottom:0; }
+
+    .floating-section-label{
+      font-size:9px;
+      font-weight:500;
+      color:var(--color-gray);
+      text-transform:uppercase;
+      letter-spacing:.5px;
+      margin-bottom:6px;
+    }
+
+    .btn-group{ display:flex; gap:4px; }
+
+    .btn-group-spaced{
+      display:flex;
+      gap:4px;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .btn{
+      padding:8px 12px;
+      border:1px solid var(--color-gray-light);
+      border-radius:var(--border-radius);
+      background:var(--color-white);
+      cursor:pointer;
+      font-family:var(--font-main);
+      font-size:11px;
+      font-weight:500;
+      color:var(--color-gray-dark);
+      transition:all .15s ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      user-select:none;
+    }
+
+    .btn:hover{
+      background:var(--color-gray-lighter);
+      border-color:var(--color-gray);
+    }
+
+    .btn:active{ transform:scale(.98); }
+
+    .btn:disabled{
+      opacity:.4;
+      cursor:not-allowed;
+    }
+
+    .btn:disabled:hover{
+      background:var(--color-white);
+      border-color:var(--color-gray-light);
+    }
+
+    .btn-format{
+      width:34px;
+      height:34px;
+      padding:0;
+      font-size:13px;
+    }
+
+    .btn-format.bold{ font-weight:700; }
+    .btn-format.italic{ font-style:italic; }
+    .btn-format.underline{ text-decoration:underline; }
+
+    .btn-font{
+      width:38px;
+      height:34px;
+      padding:0;
+      font-size:14px;
+      font-weight:600;
+    }
+
+    .font-size-display{
+      font-size:11px;
+      font-weight:600;
+      color:var(--color-black);
+      min-width:60px;
+      text-align:center;
+      padding:6px 8px;
+      background:var(--color-gray-lighter);
+      border-radius:4px;
+    }
+
+    .active-page-indicator{
+      font-size:9px;
+      color:var(--color-gray);
+      text-align:center;
+      margin-top:4px;
+    }
+    .active-page-indicator span{
+      font-weight:600;
+      color:#3b82f6;
+    }
+
+    .btn-full{ width:100%; margin-top:6px; }
+
+    .btn-primary{
+      background:var(--color-black);
+      color:var(--color-white);
+      border-color:var(--color-black);
+    }
+    .btn-primary:hover{ background:var(--color-gray-dark); }
+
+    .btn-success{
+      color:#047857;
+      border-color:#10b981;
+      background:#ecfdf5;
+    }
+    .btn-success:hover{ background:#d1fae5; }
+
+    .btn-info{
+      color:#0369a1;
+      border-color:#38bdf8;
+      background:#f0f9ff;
+    }
+    .btn-info:hover{ background:#e0f2fe; }
+
+    .btn-warning{
+      color:#b45309;
+      border-color:#fbbf24;
+      background:#fffbeb;
+    }
+    .btn-warning:hover{ background:#fef3c7; }
+
+    .btn-danger{
+      color:#dc2626;
+      border-color:#fca5a5;
+      background:#fef2f2;
+    }
+    .btn-danger:hover{ background:#fee2e2; }
+
+    .hidden-input{ display:none; }
+
+    .page-indicator{
+      position:absolute;
+      bottom:3px;
+      right:8px;
+      font-size:7px;
+      color:var(--color-gray);
+    }
+
+    .toast{
+      position:fixed;
+      bottom:20px;
+      left:50%;
+      transform:translateX(-50%);
+      background:var(--color-black);
+      color:var(--color-white);
+      padding:10px 20px;
+      border-radius:var(--border-radius);
+      font-size:12px;
+      z-index:2000;
+      opacity:0;
+      transition:opacity .3s ease;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      max-width:min(92vw, 720px);
+    }
+
+    .toast.show{ opacity:1; }
+    .toast.success{ background:#047857; }
+
+    .page-count-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      font-size:10px;
+      color:var(--color-gray);
+      margin-top:4px;
+    }
+    .page-count-badge span{
+      font-weight:600;
+      color:var(--color-black);
+    }
+
+    /* Measurer invisível para calcular o que cabe */
+    #rx-measurer, #patient-measurer{
+      position:absolute;
+      left:-99999px;
+      top:0;
+      visibility:hidden;
+      white-space:pre-wrap;
+      word-break:break-word;
+      overflow-wrap:anywhere;
+      pointer-events:none;
+      user-select:none;
+    }
+
+    /* ============================================
+       RESPONSIVO
+    ============================================ */
+    @media screen and (max-width:1600px){
+      .page-wrapper{ transform:scale(.85); margin-bottom:-32mm; }
+    }
+
+    @media screen and (max-width:1400px){
+      .page-wrapper{ transform:scale(.7); margin-bottom:-63mm; }
+    }
+
+    @media screen and (max-width:1200px){
+      .page-wrapper{ transform:scale(.55); margin-bottom:-95mm; }
+    }
+
+    @media screen and (max-width:900px){
+      :root{ --ui-width:160px; }
+      .page-wrapper{ transform:scale(.45); margin-bottom:-115mm; }
+      .floating-ui{ padding:10px; }
+      .floating-section-label{ font-size:8px; }
+      .btn{ padding:6px 10px; font-size:10px; }
+      .btn-format, .btn-font{ width:30px; height:30px; }
+    }
+
+    /* ============================================
+       PRINT STYLES
+    ============================================ */
+    @media print{
+      @page{ size:A4 landscape; margin:0; }
+
+      *{
+        -webkit-print-color-adjust:exact !important;
+        print-color-adjust:exact !important;
+      }
+
+      html, body{
+        width:297mm;
+        height:210mm;
+        padding:0;
+        margin:0;
+      }
+
+      body{ background:white; padding-right:0; }
+
+      .floating-ui, .toast{ display:none !important; }
+
+      #pages-container{ gap:0; max-width:none; }
+
+      .page-wrapper{
+        width:297mm;
+        height:210mm;
+        margin:0;
+        margin-bottom:0 !important;
+        box-shadow:none;
+        outline:none;
+        transform:none !important;
+        page-break-after:always;
+        page-break-inside:avoid;
+        break-after:page;
+        break-inside:avoid;
+      }
+
+      .page-wrapper:last-child{
+        page-break-after:auto;
+        break-after:auto;
+      }
+
+      .via{ border:none; }
+      .via-farmacia{ border-right:1.5px dashed #666 !important; }
+      .via-paciente{ background:white !important; }
+      .via-label{ background:#f0f0f0 !important; }
+
+      .logo-container:not(.has-logo){ display:none !important; }
+
+      .header{ gap:8px; }
+
+      [contenteditable="true"]:focus{ outline:none !important; }
+      [contenteditable="true"]:hover{ background:transparent !important; }
+
+      .page-indicator{ display:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="floating-ui" id="floating-ui">
+    <div class="floating-ui-title">
+      <span>📋</span> Ferramentas
+    </div>
+
+    <div class="floating-section">
+      <div class="floating-section-label">Formatação de Texto</div>
+      <div class="btn-group">
+        <button class="btn btn-format bold" onclick="formatText('bold')" title="Negrito (Ctrl+B)">B</button>
+        <button class="btn btn-format italic" onclick="formatText('italic')" title="Itálico (Ctrl+I)">I</button>
+        <button class="btn btn-format underline" onclick="formatText('underline')" title="Sublinhado (Ctrl+U)">U</button>
+      </div>
+    </div>
+
+    <div class="floating-section">
+      <div class="floating-section-label">Tamanho da Fonte</div>
+      <div class="btn-group-spaced">
+        <button class="btn btn-font" onclick="decreaseFontSize()" title="Diminuir fonte (Ctrl+-)" id="btn-font-decrease">A-</button>
+        <div class="font-size-display" id="font-size-display">11pt</div>
+        <button class="btn btn-font" onclick="increaseFontSize()" title="Aumentar fonte (Ctrl++)" id="btn-font-increase">A+</button>
+      </div>
+      <div class="active-page-indicator" id="active-page-indicator">Página <span>1</span></div>
+    </div>
+
+    <div class="floating-section">
+      <div class="floating-section-label">Páginas</div>
+      <button class="btn btn-info btn-full" onclick="addManualPage()">📄 Nova Página</button>
+      <div class="page-count-badge">
+        Total: <span id="page-count">1</span> página(s)
+      </div>
+    </div>
+
+    <div class="floating-section">
+      <div class="floating-section-label">Dados do Cabeçalho</div>
+      <button class="btn btn-success btn-full" onclick="saveAllData()">💾 Salvar Dados</button>
+    </div>
+
+    <div class="floating-section">
+      <div class="floating-section-label">Ações</div>
+      <button class="btn btn-primary btn-full" onclick="handlePrint()">🖨️ Imprimir</button>
+      <button class="btn btn-warning btn-full" onclick="clearPrescription()">🧹 Limpar Receita</button>
+      <button class="btn btn-danger btn-full" onclick="resetAll()">⚠️ Resetar Tudo</button>
+    </div>
+  </div>
+
+  <div id="pages-container"></div>
+
+  <div id="rx-measurer" aria-hidden="true"></div>
+  <div id="patient-measurer" aria-hidden="true"></div>
+
+  <template id="page-template">
+    <div class="page-wrapper">
+      <div class="via via-farmacia">
+        <div class="via-label">1ª Via — Farmácia</div>
+
+        <div class="header">
+          <div class="logo-container" title="Clique para adicionar logo">
+            <img class="logo-img" alt="Logo" />
+            <span class="logo-placeholder">+ Logo</span>
+          </div>
+
+          <div class="header-text">
+            <div class="header-title" contenteditable="true">Prefeitura Municipal</div>
+            <div class="header-subtitle" contenteditable="true">Secretaria Municipal de Saúde — Unidade Básica de Saúde</div>
+            <div class="header-special">Receituário de Medicamentos</div>
+          </div>
+        </div>
+
+        <div class="separator-strong"></div>
+
+        <div class="patient-section">
+          <label class="section-label">Identificação do Paciente</label>
+          <textarea class="patient-input" rows="2" placeholder="Nome completo, endereço, RG/CPF..."></textarea>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="prescription-section">
+          <div class="prescription-content" contenteditable="true"></div>
+        </div>
+
+        <div class="footer-section">
+          <div class="date-location" contenteditable="true"></div>
+          <div class="signature-area">
+            <div class="signature-line">
+              <div class="doctor-name" contenteditable="true">Nome do Médico</div>
+              <div class="doctor-crm" contenteditable="true">CRM: 00000-UF</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="via via-paciente">
+        <div class="via-label">2ª Via — Paciente</div>
+
+        <div class="header">
+          <div class="logo-container">
+            <img class="logo-img-mirror" alt="Logo" />
+            <span class="logo-placeholder">+ Logo</span>
+          </div>
+
+          <div class="header-text">
+            <div class="header-title-mirror">Prefeitura Municipal</div>
+            <div class="header-subtitle-mirror">Secretaria Municipal de Saúde — Unidade Básica de Saúde</div>
+            <div class="header-special">Receituário de Medicamentos</div>
+          </div>
+        </div>
+
+        <div class="separator-strong"></div>
+
+        <div class="patient-section">
+          <label class="section-label">Identificação do Paciente</label>
+          <div class="patient-display patient-mirror"></div>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="prescription-section">
+          <div class="prescription-content prescription-mirror"></div>
+        </div>
+
+        <div class="footer-section">
+          <div class="date-location date-mirror"></div>
+          <div class="signature-area">
+            <div class="signature-line">
+              <div class="doctor-name-mirror">Nome do Médico</div>
+              <div class="doctor-crm-mirror">CRM: 00000-UF</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <span class="page-indicator"></span>
+    </div>
+  </template>
+
+  <div class="toast" id="toast"></div>
+  <input type="file" id="logo-input" class="hidden-input" accept="image/*" />
+
+  <script>
+    // ============================================
+    // CONFIGURAÇÕES
+    // ============================================
+    const DEFAULT_FONT_SIZE = 11;
+    const MIN_FONT_SIZE = 7;
+    const MAX_FONT_SIZE = 11.5;
+    const FONT_STEP = 0.25;
+    const STORAGE_KEY = 'receituario-dados-cabecalho';
+
+    // ============================================
+    // ESTADO
+    // ============================================
+    const rxState = {
+      html: '',
+      fontSize: DEFAULT_FONT_SIZE
+    };
+
+    let pages = [];
+    let activePageIndex = 0;
+    let minPageCount = 1;
+
+    let isProcessing = false;
+    let rxScheduled = false;
+    let isComposingRx = false;
+    let pendingRxSelection = null;
+    let isSyncingPatient = false; // Flag para evitar loop na sincronização do paciente
+
+    const undoStack = [];
+    const MAX_UNDO_STACK = 50;
+
+    let logoDataUrl = null;
+
+    // ============================================
+    // ELEMENTOS
+    // ============================================
+    const pagesContainer = document.getElementById('pages-container');
+    const pageTemplate = document.getElementById('page-template');
+    const logoInput = document.getElementById('logo-input');
+    const toast = document.getElementById('toast');
+    const fontSizeDisplay = document.getElementById('font-size-display');
+    const pageCountDisplay = document.getElementById('page-count');
+    const activePageIndicator = document.getElementById('active-page-indicator');
+    const btnFontDecrease = document.getElementById('btn-font-decrease');
+    const btnFontIncrease = document.getElementById('btn-font-increase');
+
+    const rxMeasurer = document.getElementById('rx-measurer');
+    const patientMeasurer = document.getElementById('patient-measurer');
+
+    // ============================================
+    // INIT
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      createPage(1, false);
+      loadSavedData();
+      setCurrentDate();
+      setupGlobalEvents();
+      repaginateAndRender();
+      updateUI();
+      setTimeout(() => saveState(), 100);
+    });
+
+    // ============================================
+    // HELPERS UI
+    // ============================================
+    function clampFontSize(size) {
+      return Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, size));
+    }
+
+    function formatPt(size) {
+      const s = (Math.round(size * 100) / 100).toFixed(2).replace(/\.?0+$/, '');
+      return s + 'pt';
+    }
+
+    function showToast(message, type = 'default', duration = 2500) {
+      toast.textContent = message;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    function updateUI() {
+      fontSizeDisplay.textContent = formatPt(rxState.fontSize);
+      btnFontDecrease.disabled = rxState.fontSize <= MIN_FONT_SIZE;
+      btnFontIncrease.disabled = rxState.fontSize >= MAX_FONT_SIZE;
+
+      activePageIndicator.innerHTML = `Página <span>${activePageIndex + 1}</span>`;
+      pageCountDisplay.textContent = pages.length;
+    }
+
+    // ============================================
+    // PAGE MGMT
+    // ============================================
+    function refreshPageMeta() {
+      pages.forEach((p, idx) => {
+        p.number = idx + 1;
+        p.element.dataset.pageIndex = String(idx);
+        p.element.dataset.pageNumber = String(idx + 1);
+        const ind = p.element.querySelector('.page-indicator');
+        if (ind) ind.textContent = `Página ${idx + 1}`;
+      });
+
+      if (activePageIndex >= pages.length) activePageIndex = pages.length - 1;
+      if (activePageIndex < 0) activePageIndex = 0;
+    }
+
+    function setActivePage(pageIndex) {
+      activePageIndex = Math.max(0, Math.min(pageIndex, pages.length - 1));
+      pages.forEach((p, idx) => p.element.classList.toggle('active', idx === activePageIndex));
+      updateUI();
+    }
+
+    function createPage(pageNumber, isOverflow = false) {
+      const template = pageTemplate.content.cloneNode(true);
+      const pageWrapper = template.querySelector('.page-wrapper');
+
+      pageWrapper.id = `page-${pageNumber}`;
+      pageWrapper.dataset.pageNumber = String(pageNumber);
+
+      // NÃO remover mais o patient-section - ele deve aparecer em todas as páginas
+
+      pagesContainer.appendChild(pageWrapper);
+
+      pages.push({
+        number: pageNumber,
+        element: pageWrapper,
+        isOverflow
+      });
+
+      setupPageEvents(pageWrapper);
+      refreshPageMeta();
+      return pageWrapper;
+    }
+
+    function ensurePageCount(desiredCount) {
+      const target = Math.max(1, desiredCount, minPageCount);
+
+      while (pages.length < target) {
+        const newPage = createPage(pages.length + 1, pages.length > 0);
+        applyPageDataFromFirst(newPage);
+      }
+
+      while (pages.length > target && pages.length > minPageCount) {
+        const last = pages.pop();
+        last.element.remove();
+      }
+
+      refreshPageMeta();
+    }
+
+    function addManualPage() {
+      saveState();
+      minPageCount += 1;
+      repaginateAndRender(getRxGlobalSelection());
+      setActivePage(minPageCount - 1);
+      const ed = pages[minPageCount - 1]?.element?.querySelector('.via-farmacia .prescription-content');
+      ed?.focus();
+      updateUI();
+      showToast('Nova página adicionada');
+    }
+
+    // ============================================
+    // PATIENT: sincronização entre todas as páginas
+    // ============================================
+    function syncPatientToAllPages(value, sourceInput) {
+      if (isSyncingPatient) return;
+      isSyncingPatient = true;
+
+      pages.forEach(page => {
+        const input = page.element.querySelector('.via-farmacia .patient-input');
+        const mirror = page.element.querySelector('.via-paciente .patient-mirror');
+
+        if (input && input !== sourceInput) {
+          input.value = value;
+        }
+        if (mirror) {
+          mirror.textContent = value;
+        }
+      });
+
+      isSyncingPatient = false;
+    }
+
+    // ============================================
+    // RX: selection (global text offsets)
+    // ============================================
+    function closestRxEditable(node) {
+      if (!node) return null;
+      const el = node.nodeType === 1 ? node : node.parentElement;
+      return el?.closest?.('.via-farmacia .prescription-content') || null;
+    }
+
+    function caretOffsetWithin(root, container, offset) {
+      try {
+        const range = document.createRange();
+        range.setStart(root, 0);
+        range.setEnd(container, offset);
+        return range.toString().length;
+      } catch {
+        return 0;
+      }
+    }
+
+    function getRxGlobalSelection() {
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return { wasInRx: false, start: 0, end: 0 };
+
+      const range = sel.getRangeAt(0);
+      const startRx = closestRxEditable(range.startContainer);
+      const endRx = closestRxEditable(range.endContainer);
+      if (!startRx || !endRx) return { wasInRx: false, start: 0, end: 0 };
+
+      const startBase = parseInt(startRx.dataset.start || '0', 10) || 0;
+      const endBase = parseInt(endRx.dataset.start || '0', 10) || 0;
+
+      const localStart = caretOffsetWithin(startRx, range.startContainer, range.startOffset);
+      const localEnd = caretOffsetWithin(endRx, range.endContainer, range.endOffset);
+
+      const globalStart = startBase + localStart;
+      const globalEnd = endBase + localEnd;
+
+      return {
+        wasInRx: true,
+        start: Math.min(globalStart, globalEnd),
+        end: Math.max(globalStart, globalEnd)
+      };
+    }
+
+    function resolveTextNodeOffset(root, offset) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      let node = walker.nextNode();
+
+      if (!node) {
+        const t = document.createTextNode('');
+        root.appendChild(t);
+        return { node: t, offset: 0 };
+      }
+
+      let remaining = offset;
+      let last = node;
+
+      while (node) {
+        last = node;
+        const len = node.nodeValue.length;
+        if (remaining <= len) return { node, offset: remaining };
+        remaining -= len;
+        node = walker.nextNode();
+      }
+
+      return { node: last, offset: last.nodeValue.length };
+    }
+
+    function findRxByOffset(globalOffset) {
+      for (const p of pages) {
+        const el = p.element.querySelector('.via-farmacia .prescription-content');
+        if (!el) continue;
+        const s = parseInt(el.dataset.start || '0', 10) || 0;
+        const e = parseInt(el.dataset.end || '0', 10) || 0;
+        if (globalOffset >= s && globalOffset <= e) return { el, start: s, end: e };
+      }
+      const last = pages[pages.length - 1]?.element?.querySelector('.via-farmacia .prescription-content');
+      if (last) {
+        const s = parseInt(last.dataset.start || '0', 10) || 0;
+        const e = parseInt(last.dataset.end || '0', 10) || 0;
+        return { el: last, start: s, end: e };
+      }
+      return null;
+    }
+
+    function findPageIndexForOffset(globalOffset) {
+      for (let i = 0; i < pages.length; i++) {
+        const el = pages[i].element.querySelector('.via-farmacia .prescription-content');
+        if (!el) continue;
+        const s = parseInt(el.dataset.start || '0', 10) || 0;
+        const e = parseInt(el.dataset.end || '0', 10) || 0;
+        if (globalOffset >= s && globalOffset <= e) return i;
+      }
+      return Math.max(0, pages.length - 1);
+    }
+
+    function restoreRxSelection(globalStart, globalEnd) {
+      const total = getRxTotalTextLength();
+      const s = Math.max(0, Math.min(globalStart, total));
+      const e = Math.max(0, Math.min(globalEnd, total));
+
+      const startTarget = findRxByOffset(s);
+      const endTarget = findRxByOffset(e);
+      if (!startTarget || !endTarget) return;
+
+      const startLocal = s - startTarget.start;
+      const endLocal = e - endTarget.start;
+
+      const startPos = resolveTextNodeOffset(startTarget.el, startLocal);
+      const endPos = resolveTextNodeOffset(endTarget.el, endLocal);
+
+      const range = document.createRange();
+      range.setStart(startPos.node, startPos.offset);
+      range.setEnd(endPos.node, endPos.offset);
+
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      startTarget.el.focus();
+    }
+
+    function getRxTotalTextLength() {
+      let len = 0;
+      for (const p of pages) {
+        const el = p.element.querySelector('.via-farmacia .prescription-content');
+        if (el) len += (el.textContent || '').length;
+      }
+      return len;
+    }
+
+    // ============================================
+    // RX: plain insert (preserve formatting tags around)
+    // ============================================
+    function insertTextAtSelection(text) {
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return;
+
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+
+      const node = document.createTextNode(text);
+      range.insertNode(node);
+
+      range.setStartAfter(node);
+      range.collapse(true);
+
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      node.parentNode?.normalize?.();
+    }
+
+    // ============================================
+    // RX: normalize HTML (convert BR/DIV/P to \n-friendly inline model)
+    // ============================================
+    function normalizeLineEndings(s) {
+      return (s || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\u00A0/g, ' ');
+    }
+
+    function normalizeRxHTML(html) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html || '';
+
+      const allowedInline = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'SPAN']);
+      const blockTags = new Set(['DIV', 'P']);
+
+      function cloneWithAllowedStyle(el) {
+        const clone = document.createElement(el.tagName.toLowerCase());
+        if (el.tagName === 'SPAN') {
+          const style = el.getAttribute('style') || '';
+          const kept = [];
+          style.split(';').map(s => s.trim()).filter(Boolean).forEach(pair => {
+            const [kRaw, vRaw] = pair.split(':');
+            if (!kRaw || !vRaw) return;
+            const k = kRaw.trim().toLowerCase();
+            const v = vRaw.trim().toLowerCase();
+            if (k === 'font-weight' || k === 'font-style' || k === 'text-decoration') {
+              kept.push(`${k}:${v}`);
+            }
+          });
+          if (kept.length) clone.setAttribute('style', kept.join(';'));
+        }
+        return clone;
+      }
+
+      function walk(node, outFrag, afterBlockNewline) {
+        if (!node) return;
+
+        if (node.nodeType === Node.TEXT_NODE) {
+          outFrag.appendChild(document.createTextNode(normalizeLineEndings(node.nodeValue)));
+          return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        const tag = node.tagName;
+
+        if (tag === 'BR') {
+          outFrag.appendChild(document.createTextNode('\n'));
+          return;
+        }
+
+        if (blockTags.has(tag)) {
+          const innerFrag = document.createDocumentFragment();
+          Array.from(node.childNodes).forEach(ch => walk(ch, innerFrag, true));
+          outFrag.appendChild(innerFrag);
+          if (afterBlockNewline) {
+            const lastText = outFrag.lastChild && outFrag.lastChild.nodeType === Node.TEXT_NODE ? outFrag.lastChild.nodeValue : null;
+            if (!lastText || !lastText.endsWith('\n')) outFrag.appendChild(document.createTextNode('\n'));
+          }
+          return;
+        }
+
+        if (allowedInline.has(tag)) {
+          const clone = cloneWithAllowedStyle(node);
+          Array.from(node.childNodes).forEach(ch => walk(ch, clone, false));
+          outFrag.appendChild(clone);
+          return;
+        }
+
+        Array.from(node.childNodes).forEach(ch => walk(ch, outFrag, false));
+      }
+
+      const frag = document.createDocumentFragment();
+      Array.from(tmp.childNodes).forEach(ch => walk(ch, frag, false));
+
+      const wrap = document.createElement('div');
+      wrap.appendChild(frag);
+      let out = wrap.innerHTML;
+
+      out = out.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\u00A0/g, ' ');
+
+      const outText = (() => {
+        const t = document.createElement('div');
+        t.innerHTML = out;
+        return t.textContent || '';
+      })();
+
+      if (outText.length) {
+        out = out.replace(/(\n){3,}$/g, '\n\n');
+      }
+
+      return out;
+    }
+
+    function collectRxHTMLFromDOM() {
+      const raw = pages.map(p => p.element.querySelector('.via-farmacia .prescription-content')?.innerHTML || '').join('');
+      return normalizeRxHTML(raw);
+    }
+
+    function scheduleRxRepaginate() {
+      if (isProcessing || isComposingRx) return;
+
+      pendingRxSelection = getRxGlobalSelection();
+      rxState.html = collectRxHTMLFromDOM();
+
+      if (rxScheduled) return;
+      rxScheduled = true;
+
+      requestAnimationFrame(() => {
+        rxScheduled = false;
+        repaginateAndRender(pendingRxSelection);
+      });
+    }
+
+    // ============================================
+    // RX: pagination via Range clone + measurement
+    // ============================================
+    function getRxMetrics() {
+      const baseEl = pages[0]?.element?.querySelector('.via-farmacia .prescription-content');
+      if (!baseEl) return null;
+      return { baseEl, width: baseEl.clientWidth, height: baseEl.clientHeight };
+    }
+
+    function syncRxMeasurerStyles(metrics) {
+      const cs = getComputedStyle(metrics.baseEl);
+      rxMeasurer.style.width = metrics.width + 'px';
+      rxMeasurer.style.fontFamily = cs.fontFamily;
+      rxMeasurer.style.fontSize = rxState.fontSize + 'pt';
+      rxMeasurer.style.fontWeight = cs.fontWeight;
+      rxMeasurer.style.fontStyle = cs.fontStyle;
+      rxMeasurer.style.letterSpacing = cs.letterSpacing;
+      rxMeasurer.style.lineHeight = cs.lineHeight;
+      rxMeasurer.style.whiteSpace = cs.whiteSpace;
+      rxMeasurer.style.wordBreak = cs.wordBreak;
+      rxMeasurer.style.overflowWrap = cs.overflowWrap || 'anywhere';
+    }
+
+    function domPosFromTextOffset(root, offset) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      let node = walker.nextNode();
+
+      if (!node) {
+        const t = document.createTextNode('');
+        root.appendChild(t);
+        return { node: t, offset: 0 };
+      }
+
+      let remaining = offset;
+      let last = node;
+
+      while (node) {
+        last = node;
+        const len = node.nodeValue.length;
+        if (remaining <= len) return { node, offset: remaining };
+        remaining -= len;
+        node = walker.nextNode();
+      }
+
+      return { node: last, offset: last.nodeValue.length };
+    }
+
+    function cloneFragmentByTextOffsets(root, start, end) {
+      const range = document.createRange();
+      const sPos = domPosFromTextOffset(root, start);
+      const ePos = domPosFromTextOffset(root, end);
+      range.setStart(sPos.node, sPos.offset);
+      range.setEnd(ePos.node, ePos.offset);
+      return range.cloneContents();
+    }
+
+    function fragmentHTMLFromOffsets(root, start, end) {
+      const frag = cloneFragmentByTextOffsets(root, start, end);
+      const wrap = document.createElement('div');
+      wrap.appendChild(frag);
+      return wrap.innerHTML;
+    }
+
+    function fitsOffsets(root, start, end, maxHeight) {
+      rxMeasurer.innerHTML = '';
+      rxMeasurer.appendChild(cloneFragmentByTextOffsets(root, start, end));
+      return rxMeasurer.scrollHeight <= (maxHeight + 0.5);
+    }
+
+    function adjustEndOffsetToBoundary(fullText, start, best) {
+      if (best <= start + 1) return best;
+      if (best >= fullText.length) return best;
+
+      let idx = best - 1;
+      let found = -1;
+
+      while (idx > start) {
+        const ch = fullText[idx];
+        if (ch === '\n' || ch === ' ' || ch === '\t') { found = idx + 1; break; }
+        idx--;
+      }
+
+      if (found <= start + 1) return best;
+      if (found < Math.floor(best * 0.6 + start * 0.4)) return best;
+      return found;
+    }
+
+    function repaginateAndRender(selection = null) {
+      if (isProcessing) return;
+
+      const metrics = getRxMetrics();
+      if (!metrics) return;
+
+      isProcessing = true;
+      try {
+        syncRxMeasurerStyles(metrics);
+
+        const sourceRoot = document.createElement('div');
+        sourceRoot.style.whiteSpace = 'pre-wrap';
+        sourceRoot.style.wordBreak = 'break-word';
+        sourceRoot.style.overflowWrap = 'anywhere';
+        sourceRoot.innerHTML = normalizeRxHTML(rxState.html || '');
+
+        const fullText = sourceRoot.textContent || '';
+        const maxHeight = metrics.height;
+
+        const chunks = [];
+        const lens = [];
+
+        if (!fullText.length) {
+          chunks.push('');
+          lens.push(0);
+        } else {
+          let pos = 0;
+          while (pos < fullText.length) {
+            if (!fitsOffsets(sourceRoot, pos, pos + 1, maxHeight)) {
+              const htmlOne = fragmentHTMLFromOffsets(sourceRoot, pos, pos + 1);
+              chunks.push(htmlOne);
+              lens.push(1);
+              pos += 1;
+              continue;
+            }
+
+            let lo = pos + 1;
+            let hi = fullText.length;
+            let best = pos + 1;
+
+            while (lo <= hi) {
+              const mid = (lo + hi) >> 1;
+              if (fitsOffsets(sourceRoot, pos, mid, maxHeight)) {
+                best = mid;
+                lo = mid + 1;
+              } else {
+                hi = mid - 1;
+              }
+            }
+
+            let end = adjustEndOffsetToBoundary(fullText, pos, best);
+            if (end <= pos) end = Math.min(pos + 1, fullText.length);
+
+            const htmlChunk = fragmentHTMLFromOffsets(sourceRoot, pos, end);
+            chunks.push(htmlChunk);
+            lens.push(end - pos);
+            pos = end;
+          }
+        }
+
+        ensurePageCount(chunks.length);
+
+        let offset = 0;
+        for (let i = 0; i < pages.length; i++) {
+          const chunkHtml = chunks[i] ?? '';
+          const chunkLen = lens[i] ?? 0;
+
+          const content = pages[i].element.querySelector('.via-farmacia .prescription-content');
+          const mirror = pages[i].element.querySelector('.via-paciente .prescription-mirror');
+
+          content.style.fontSize = rxState.fontSize + 'pt';
+          mirror.style.fontSize = rxState.fontSize + 'pt';
+
+          content.innerHTML = chunkHtml;
+          mirror.innerHTML = chunkHtml;
+
+          content.dataset.start = String(offset);
+          content.dataset.end = String(offset + chunkLen);
+
+          offset += chunkLen;
+        }
+
+        rxState.html = chunks.join('');
+
+        if (selection?.wasInRx) {
+          const totalLen = lens.reduce((a, b) => a + b, 0);
+          const s = Math.max(0, Math.min(selection.start, totalLen));
+          const e = Math.max(0, Math.min(selection.end, totalLen));
+
+          restoreRxSelection(s, e);
+          setActivePage(findPageIndexForOffset(s));
+        }
+
+      } catch (err) {
+        console.error('Erro na paginação:', err);
+      } finally {
+        isProcessing = false;
+        updateUI();
+      }
+    }
+
+    // ============================================
+    // FONT SIZE
+    // ============================================
+    function increaseFontSize() {
+      if (rxState.fontSize >= MAX_FONT_SIZE) return;
+      saveState();
+      const sel = getRxGlobalSelection();
+      rxState.fontSize = clampFontSize(rxState.fontSize + FONT_STEP);
+      repaginateAndRender(sel);
+      updateUI();
+    }
+
+    function decreaseFontSize() {
+      if (rxState.fontSize <= MIN_FONT_SIZE) return;
+      saveState();
+      const sel = getRxGlobalSelection();
+      rxState.fontSize = clampFontSize(rxState.fontSize - FONT_STEP);
+      repaginateAndRender(sel);
+      updateUI();
+    }
+
+    // ============================================
+    // PATIENT: max 2 lines enforcement
+    // ============================================
+    function syncPatientMeasurerStyles(textarea) {
+      const cs = getComputedStyle(textarea);
+      patientMeasurer.style.width = textarea.clientWidth + 'px';
+      patientMeasurer.style.fontFamily = cs.fontFamily;
+      patientMeasurer.style.fontSize = cs.fontSize;
+      patientMeasurer.style.fontWeight = cs.fontWeight;
+      patientMeasurer.style.fontStyle = cs.fontStyle;
+      patientMeasurer.style.letterSpacing = cs.letterSpacing;
+      patientMeasurer.style.lineHeight = cs.lineHeight;
+      patientMeasurer.style.whiteSpace = 'pre-wrap';
+      patientMeasurer.style.wordBreak = 'break-word';
+      patientMeasurer.style.overflowWrap = 'anywhere';
+    }
+
+    function getLineHeightPx(el) {
+      const cs = getComputedStyle(el);
+      const lh = cs.lineHeight;
+      if (lh.endsWith('px')) return parseFloat(lh);
+      const fs = parseFloat(cs.fontSize) || 10;
+      if (lh === 'normal') return fs * 1.4;
+      const n = parseFloat(lh);
+      return Number.isFinite(n) ? n : fs * 1.4;
+    }
+
+    function patientFits(textarea, value) {
+      syncPatientMeasurerStyles(textarea);
+      patientMeasurer.textContent = normalizeLineEndings(value || '');
+      const maxH = getLineHeightPx(textarea) * 2 + 0.5;
+      return patientMeasurer.scrollHeight <= maxH;
+    }
+
+    function truncateInsertToFit(textarea, currentValue, insertText, start, end) {
+      const left = currentValue.slice(0, start);
+      const right = currentValue.slice(end);
+
+      const tryOne = left + insertText.slice(0, 1) + right;
+      if (insertText.length && !patientFits(textarea, tryOne)) return '';
+
+      let lo = 0;
+      let hi = insertText.length;
+      let best = 0;
+
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        const cand = left + insertText.slice(0, mid) + right;
+        if (patientFits(textarea, cand)) {
+          best = mid;
+          lo = mid + 1;
+        } else {
+          hi = mid - 1;
+        }
+      }
+      return insertText.slice(0, best);
+    }
+
+    function applyTextareaInsert(textarea, text) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const v = textarea.value;
+
+      textarea.value = v.slice(0, start) + text + v.slice(end);
+      const pos = start + text.length;
+      textarea.setSelectionRange(pos, pos);
+    }
+
+    function setupPatientField(patientInput, patientMirror) {
+      if (!patientInput) return;
+
+      let prev = patientInput.value;
+      let prevSel = { s: 0, e: 0 };
+
+      function syncMirror() {
+        if (patientMirror) patientMirror.textContent = patientInput.value;
+        // Sincroniza com todas as outras páginas
+        syncPatientToAllPages(patientInput.value, patientInput);
+      }
+
+      patientInput.addEventListener('beforeinput', (e) => {
+        prev = patientInput.value;
+        prevSel = { s: patientInput.selectionStart, e: patientInput.selectionEnd };
+
+        const t = e.inputType || '';
+        const isDeletion = t.startsWith('delete');
+        if (isDeletion) return;
+
+        let insert = '';
+        if (t === 'insertLineBreak' || t === 'insertParagraph') insert = '\n';
+        else if (typeof e.data === 'string') insert = e.data;
+        else return;
+
+        insert = normalizeLineEndings(insert);
+
+        const s = prevSel.s;
+        const en = prevSel.e;
+
+        const next = prev.slice(0, s) + insert + prev.slice(en);
+        if (patientFits(patientInput, next)) return;
+
+        e.preventDefault();
+        const truncated = truncateInsertToFit(patientInput, prev, insert, s, en);
+        if (truncated) {
+          applyTextareaInsert(patientInput, truncated);
+          syncMirror();
+          showToast('Limite de 2 linhas atingido.');
+        }
+      });
+
+      patientInput.addEventListener('input', () => {
+        if (!patientFits(patientInput, patientInput.value)) {
+          patientInput.value = prev;
+          patientInput.setSelectionRange(prevSel.s, prevSel.s);
+        }
+        syncMirror();
+      });
+
+      patientInput.addEventListener('paste', (e) => {
+        e.preventDefault();
+        saveState();
+
+        const paste = normalizeLineEndings((e.clipboardData || window.clipboardData).getData('text/plain') || '');
+        const s = patientInput.selectionStart;
+        const en = patientInput.selectionEnd;
+        const v = patientInput.value;
+
+        const truncated = truncateInsertToFit(patientInput, v, paste, s, en);
+        if (truncated) {
+          applyTextareaInsert(patientInput, truncated);
+          syncMirror();
+          if (truncated.length < paste.length) showToast('Colagem limitada a 2 linhas.');
+        } else {
+          showToast('Limite de 2 linhas atingido.');
+        }
+      });
+    }
+
+    // ============================================
+    // PAGE EVENTS
+    // ============================================
+    function setupPageEvents(page) {
+      const viaFarmacia = page.querySelector('.via-farmacia');
+      const viaPaciente = page.querySelector('.via-paciente');
+
+      page.addEventListener('click', () => {
+        const idx = parseInt(page.dataset.pageIndex || '0', 10) || 0;
+        setActivePage(idx);
+      });
+
+      page.querySelectorAll('[contenteditable="true"], textarea').forEach(el => {
+        el.addEventListener('focus', () => {
+          const idx = parseInt(page.dataset.pageIndex || '0', 10) || 0;
+          setActivePage(idx);
+        });
+      });
+
+      viaFarmacia.querySelector('.logo-container')?.addEventListener('click', () => logoInput.click());
+
+      const headerTitle = viaFarmacia.querySelector('.header-title');
+      const headerTitleMirror = viaPaciente.querySelector('.header-title-mirror');
+      headerTitle?.addEventListener('input', () => {
+        headerTitleMirror.textContent = headerTitle.textContent;
+        syncAllPages('headerTitle', headerTitle.textContent);
+      });
+
+      const headerSubtitle = viaFarmacia.querySelector('.header-subtitle');
+      const headerSubtitleMirror = viaPaciente.querySelector('.header-subtitle-mirror');
+      headerSubtitle?.addEventListener('input', () => {
+        headerSubtitleMirror.textContent = headerSubtitle.textContent;
+        syncAllPages('headerSubtitle', headerSubtitle.textContent);
+      });
+
+      // Patient: configura em todas as páginas
+      const patientInput = viaFarmacia.querySelector('.patient-input');
+      const patientMirror = viaPaciente.querySelector('.patient-mirror');
+      if (patientInput) {
+        setupPatientField(patientInput, patientMirror);
+      }
+
+      // RX editor
+      const rx = viaFarmacia.querySelector('.prescription-content');
+      const rxMirror = viaPaciente.querySelector('.prescription-mirror');
+
+      rx.spellcheck = false;
+      rx.style.fontSize = rxState.fontSize + 'pt';
+      rxMirror.style.fontSize = rxState.fontSize + 'pt';
+
+      rx.addEventListener('compositionstart', () => { isComposingRx = true; });
+      rx.addEventListener('compositionend', () => { isComposingRx = false; scheduleRxRepaginate(); });
+
+      rx.addEventListener('beforeinput', (e) => {
+        if (isProcessing) return;
+        saveState();
+
+        if (e.inputType === 'insertParagraph' || e.inputType === 'insertLineBreak') {
+          e.preventDefault();
+          insertTextAtSelection('\n');
+          scheduleRxRepaginate();
+          return;
+        }
+      });
+
+      rx.addEventListener('input', () => {
+        if (isProcessing || isComposingRx) return;
+        scheduleRxRepaginate();
+      });
+
+      rx.addEventListener('paste', (e) => {
+        e.preventDefault();
+        if (isProcessing) return;
+        saveState();
+        const text = normalizeLineEndings((e.clipboardData || window.clipboardData).getData('text/plain') || '');
+        insertTextAtSelection(text);
+        scheduleRxRepaginate();
+      });
+
+      rx.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (isProcessing) return;
+        saveState();
+        const text = normalizeLineEndings(e.dataTransfer?.getData('text/plain') || '');
+        if (text) {
+          insertTextAtSelection(text);
+          scheduleRxRepaginate();
+        }
+      });
+
+      // Date
+      const dateSection = viaFarmacia.querySelector('.date-location');
+      const dateMirror = viaPaciente.querySelector('.date-mirror');
+      dateSection?.addEventListener('input', () => {
+        dateMirror.textContent = dateSection.textContent;
+        syncAllPages('dateLocation', dateSection.textContent);
+      });
+
+      // Doctor
+      const doctorName = viaFarmacia.querySelector('.doctor-name');
+      const doctorNameMirror = viaPaciente.querySelector('.doctor-name-mirror');
+      doctorName?.addEventListener('input', () => {
+        doctorNameMirror.textContent = doctorName.textContent;
+        syncAllPages('doctorName', doctorName.textContent);
+      });
+
+      const doctorCRM = viaFarmacia.querySelector('.doctor-crm');
+      const doctorCRMMirror = viaPaciente.querySelector('.doctor-crm-mirror');
+      doctorCRM?.addEventListener('input', () => {
+        doctorCRMMirror.textContent = doctorCRM.textContent;
+        syncAllPages('doctorCRM', doctorCRM.textContent);
+      });
+    }
+
+    // ============================================
+    // SYNC FIELDS
+    // ============================================
+    function syncAllPages(field, value) {
+      pages.forEach(page => {
+        const viaF = page.element.querySelector('.via-farmacia');
+        const viaP = page.element.querySelector('.via-paciente');
+
+        const selectors = {
+          headerTitle: ['.header-title', '.header-title-mirror'],
+          headerSubtitle: ['.header-subtitle', '.header-subtitle-mirror'],
+          dateLocation: ['.date-location', '.date-mirror'],
+          doctorName: ['.doctor-name', '.doctor-name-mirror'],
+          doctorCRM: ['.doctor-crm', '.doctor-crm-mirror']
+        };
+
+        if (selectors[field]) {
+          const elF = viaF.querySelector(selectors[field][0]);
+          const elP = viaP.querySelector(selectors[field][1]);
+          if (elF) elF.textContent = value;
+          if (elP) elP.textContent = value;
+        }
+      });
+    }
+
+    function getPageData(page) {
+      const viaF = page.querySelector('.via-farmacia');
+      return {
+        headerTitle: viaF.querySelector('.header-title')?.textContent || '',
+        headerSubtitle: viaF.querySelector('.header-subtitle')?.textContent || '',
+        dateLocation: viaF.querySelector('.date-location')?.textContent || '',
+        doctorName: viaF.querySelector('.doctor-name')?.textContent || '',
+        doctorCRM: viaF.querySelector('.doctor-crm')?.textContent || ''
+      };
+    }
+
+    function applyPageData(page, data) {
+      const viaF = page.querySelector('.via-farmacia');
+      const viaP = page.querySelector('.via-paciente');
+
+      viaF.querySelector('.header-title').textContent = data.headerTitle;
+      viaP.querySelector('.header-title-mirror').textContent = data.headerTitle;
+
+      viaF.querySelector('.header-subtitle').textContent = data.headerSubtitle;
+      viaP.querySelector('.header-subtitle-mirror').textContent = data.headerSubtitle;
+
+      viaF.querySelector('.date-location').textContent = data.dateLocation;
+      viaP.querySelector('.date-mirror').textContent = data.dateLocation;
+
+      viaF.querySelector('.doctor-name').textContent = data.doctorName;
+      viaP.querySelector('.doctor-name-mirror').textContent = data.doctorName;
+
+      viaF.querySelector('.doctor-crm').textContent = data.doctorCRM;
+      viaP.querySelector('.doctor-crm-mirror').textContent = data.doctorCRM;
+    }
+
+    function applyPageDataFromFirst(page) {
+      const firstPage = pages[0]?.element;
+      if (!firstPage) return;
+
+      applyPageData(page, getPageData(firstPage));
+
+      // Também copia o valor do paciente
+      const firstPatientInput = firstPage.querySelector('.patient-input');
+      const patientInput = page.querySelector('.via-farmacia .patient-input');
+      const patientMirror = page.querySelector('.via-paciente .patient-mirror');
+
+      if (firstPatientInput && patientInput) {
+        patientInput.value = firstPatientInput.value;
+      }
+      if (firstPatientInput && patientMirror) {
+        patientMirror.textContent = firstPatientInput.value;
+      }
+
+      if (logoDataUrl) applyLogoToPage(page, logoDataUrl);
+    }
+
+    // ============================================
+    // LOGO
+    // ============================================
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file?.type?.startsWith('image/')) {
+        showToast('Selecione uma imagem');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        logoDataUrl = e.target.result;
+        applyLogoToAllPages(logoDataUrl);
+        showToast('✓ Logo atualizado', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function applyLogoToAllPages(base64) {
+      pages.forEach(p => applyLogoToPage(p.element, base64));
+    }
+
+    function applyLogoToPage(page, base64) {
+      ['via-farmacia', 'via-paciente'].forEach((via, i) => {
+        const container = page.querySelector(`.${via} .logo-container`);
+        if (!container) return;
+        const img = container.querySelector(i === 0 ? '.logo-img' : '.logo-img-mirror');
+        img.src = base64;
+        img.classList.add('visible');
+        container.classList.add('has-logo');
+      });
+    }
+
+    // ============================================
+    // FORMATAÇÃO (mantida; repagina após aplicar)
+    // ============================================
+    function formatText(command) {
+      const sel = window.getSelection();
+      const inRx = !!closestRxEditable(sel?.anchorNode);
+
+      saveState();
+
+      document.execCommand(command, false, null);
+
+      if (inRx) scheduleRxRepaginate();
+    }
+
+    // ============================================
+    // UNDO
+    // ============================================
+    function saveState() {
+      const first = pages[0]?.element;
+      const patientValue = first?.querySelector('.patient-input')?.value || '';
+      const snap = {
+        rxHtml: rxState.html,
+        rxFontSize: rxState.fontSize,
+        minPageCount,
+        patientValue,
+        activePageIndex,
+        logoDataUrl,
+        meta: first ? getPageData(first) : null
+      };
+
+      const last = undoStack[undoStack.length - 1];
+      if (last &&
+          last.rxHtml === snap.rxHtml &&
+          last.rxFontSize === snap.rxFontSize &&
+          last.minPageCount === snap.minPageCount &&
+          last.patientValue === snap.patientValue &&
+          last.activePageIndex === snap.activePageIndex &&
+          last.logoDataUrl === snap.logoDataUrl &&
+          JSON.stringify(last.meta) === JSON.stringify(snap.meta)
+      ) return;
+
+      undoStack.push(snap);
+      if (undoStack.length > MAX_UNDO_STACK) undoStack.shift();
+    }
+
+    function undo() {
+      if (undoStack.length < 2) {
+        showToast('Nada para desfazer');
+        return;
+      }
+
+      undoStack.pop();
+      const prev = undoStack[undoStack.length - 1];
+      if (!prev) return;
+
+      isProcessing = true;
+      try {
+        rxState.html = prev.rxHtml || '';
+        rxState.fontSize = clampFontSize(prev.rxFontSize || DEFAULT_FONT_SIZE);
+        minPageCount = Math.max(1, prev.minPageCount || 1);
+        logoDataUrl = prev.logoDataUrl || null;
+
+        if (prev.meta) {
+          pages.forEach(p => applyPageData(p.element, prev.meta));
+        }
+
+        // Restaura paciente em todas as páginas
+        syncPatientToAllPages(prev.patientValue || '', null);
+
+        if (logoDataUrl) applyLogoToAllPages(logoDataUrl);
+        else {
+          pages.forEach(p => {
+            p.element.querySelectorAll('.logo-container').forEach(c => {
+              c.classList.remove('has-logo');
+              c.querySelectorAll('img').forEach(img => { img.src = ''; img.classList.remove('visible'); });
+            });
+          });
+        }
+
+      } finally {
+        isProcessing = false;
+      }
+
+      repaginateAndRender();
+      setActivePage(prev.activePageIndex || 0);
+      updateUI();
+      showToast('Ação desfeita (Ctrl+Z)');
+    }
+
+    // ============================================
+    // GLOBAL EVENTS
+    // ============================================
+    function setupGlobalEvents() {
+      logoInput.addEventListener('change', handleLogoUpload);
+
+      window.addEventListener('resize', () => {
+        repaginateAndRender(getRxGlobalSelection());
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          switch (e.key.toLowerCase()) {
+            case 'p': e.preventDefault(); handlePrint(); break;
+            case 's': e.preventDefault(); saveAllData(); break;
+            case 'z': e.preventDefault(); undo(); break;
+            case 'b': e.preventDefault(); formatText('bold'); break;
+            case 'i': e.preventDefault(); formatText('italic'); break;
+            case 'u': e.preventDefault(); formatText('underline'); break;
+            case '=':
+            case '+': e.preventDefault(); increaseFontSize(); break;
+            case '-': e.preventDefault(); decreaseFontSize(); break;
+          }
+        }
+      });
+    }
+
+    // ============================================
+    // AÇÕES
+    // ============================================
+    function handlePrint() {
+      window.print();
+    }
+
+    function clearPrescription() {
+      if (!confirm('Limpar dados do paciente e prescrição?\n\nDados do cabeçalho e médico serão mantidos.')) return;
+
+      saveState();
+
+      rxState.html = '';
+      rxState.fontSize = DEFAULT_FONT_SIZE;
+      minPageCount = 1;
+
+      // Limpa paciente em todas as páginas
+      syncPatientToAllPages('', null);
+
+      repaginateAndRender();
+      ensurePageCount(1);
+      setActivePage(0);
+
+      updateUI();
+      showToast('Receita limpa');
+    }
+
+    function resetAll() {
+      if (!confirm('⚠️ ATENÇÃO!\n\nResetar tudo nesta sessão?\n\nIsso limpa logo, cabeçalho, médico, paciente e prescrição.')) return;
+
+      saveState();
+
+      logoDataUrl = null;
+      pages.forEach(p => {
+        p.element.querySelectorAll('.logo-container').forEach(c => {
+          c.classList.remove('has-logo');
+          c.querySelectorAll('img').forEach(img => { img.src = ''; img.classList.remove('visible'); });
+        });
+      });
+
+      const first = pages[0]?.element;
+      if (first) {
+        const viaF = first.querySelector('.via-farmacia');
+        viaF.querySelector('.header-title').textContent = 'Prefeitura Municipal';
+        viaF.querySelector('.header-subtitle').textContent = 'Secretaria Municipal de Saúde — Unidade Básica de Saúde';
+        viaF.querySelector('.doctor-name').textContent = 'Nome do Médico';
+        viaF.querySelector('.doctor-crm').textContent = 'CRM: 00000-UF';
+        setCurrentDate(true);
+
+        syncAllPages('headerTitle', viaF.querySelector('.header-title').textContent);
+        syncAllPages('headerSubtitle', viaF.querySelector('.header-subtitle').textContent);
+        syncAllPages('doctorName', viaF.querySelector('.doctor-name').textContent);
+        syncAllPages('doctorCRM', viaF.querySelector('.doctor-crm').textContent);
+
+        // Limpa paciente em todas as páginas
+        syncPatientToAllPages('', null);
+      }
+
+      rxState.html = '';
+      rxState.fontSize = DEFAULT_FONT_SIZE;
+      minPageCount = 1;
+
+      repaginateAndRender();
+      ensurePageCount(1);
+      setActivePage(0);
+
+      updateUI();
+      showToast('Tudo resetado');
+    }
+
+    // ============================================
+    // SALVAR E CARREGAR DADOS DO LOCALSTORAGE
+    // ============================================
+    function saveAllData() {
+      try {
+        const first = pages[0]?.element;
+        if (!first) return;
+
+        const viaF = first.querySelector('.via-farmacia');
+
+        const data = {
+          headerTitle: viaF.querySelector('.header-title')?.textContent || '',
+          headerSubtitle: viaF.querySelector('.header-subtitle')?.textContent || '',
+          dateLocation: viaF.querySelector('.date-location')?.textContent || '',
+          doctorName: viaF.querySelector('.doctor-name')?.textContent || '',
+          doctorCRM: viaF.querySelector('.doctor-crm')?.textContent || '',
+          logoDataUrl: logoDataUrl || null
+        };
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        showToast('✓ Dados do cabeçalho salvos!', 'success');
+      } catch (e) {
+        console.error('Erro ao salvar dados:', e);
+        showToast('Erro ao salvar dados');
+      }
+    }
+
+    function loadSavedData() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return;
+
+        const data = JSON.parse(saved);
+        const first = pages[0]?.element;
+        if (!first) return;
+
+        const viaF = first.querySelector('.via-farmacia');
+        const viaP = first.querySelector('.via-paciente');
+
+        if (data.headerTitle) {
+          viaF.querySelector('.header-title').textContent = data.headerTitle;
+          viaP.querySelector('.header-title-mirror').textContent = data.headerTitle;
+        }
+
+        if (data.headerSubtitle) {
+          viaF.querySelector('.header-subtitle').textContent = data.headerSubtitle;
+          viaP.querySelector('.header-subtitle-mirror').textContent = data.headerSubtitle;
+        }
+
+        if (data.dateLocation) {
+          viaF.querySelector('.date-location').textContent = data.dateLocation;
+          viaP.querySelector('.date-mirror').textContent = data.dateLocation;
+        }
+
+        if (data.doctorName) {
+          viaF.querySelector('.doctor-name').textContent = data.doctorName;
+          viaP.querySelector('.doctor-name-mirror').textContent = data.doctorName;
+        }
+
+        if (data.doctorCRM) {
+          viaF.querySelector('.doctor-crm').textContent = data.doctorCRM;
+          viaP.querySelector('.doctor-crm-mirror').textContent = data.doctorCRM;
+        }
+
+        if (data.logoDataUrl) {
+          logoDataUrl = data.logoDataUrl;
+          applyLogoToAllPages(logoDataUrl);
+        }
+
+      } catch (e) {
+        console.error('Erro ao carregar dados salvos:', e);
+      }
+    }
+
+    function setCurrentDate(force = false) {
+      const first = pages[0]?.element;
+      const dateEl = first?.querySelector('.via-farmacia .date-location');
+      
+      if (!force && dateEl?.textContent?.trim()) return;
+
+      const date = new Date().toLocaleDateString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      });
+
+      const text = `Município — UF, ${date}`;
+      pages.forEach(p => {
+        const f = p.element.querySelector('.via-farmacia .date-location');
+        const m = p.element.querySelector('.via-paciente .date-mirror');
+        if (force || !f.textContent.trim()) {
+          f.textContent = text;
+          m.textContent = text;
+        }
+      });
+    }
+  </script>
+</body>
+</html>
